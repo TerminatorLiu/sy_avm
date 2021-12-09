@@ -1,0 +1,70 @@
+
+
+#CC:=/opt/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-g++	
+CC:=aarch64-linux-gnu-g++	
+
+SOURCE:=InitMosaic.cpp \
+    esTransform.cpp \
+    mtlloader.cpp \
+    objloader.cpp \
+    render.cpp \
+    tinystr.cpp \
+    tinyxml.cpp \
+    tinyxmlerror.cpp \
+    tinyxmlparser.cpp \
+    xmltest.cpp
+
+OBJ=InitMosaic.o \
+    esTransform.o \
+    mtlloader.o \
+    objloader.o \
+    render.o \
+    tinystr.o \
+    tinyxml.o \
+    tinyxmlerror.o \
+    tinyxmlparser.o  \
+    xmltest.o
+
+OBJDIR=./obj/
+CFLAGS=-O2 -Wall -Wfatal-errors -Wno-unused-result -Wno-unknown-pragmas -fPIC \
+      -Wno-sign-compare -Wno-sign-compare  -Wno-unused-variable \
+      -Wno-unused-but-set-variable
+
+
+DEPS = $(wildcard *.h)
+
+#COMMON=-I. -I/home/tt/project/video/T5_SDK/sdk_lib/include/opengl/include \
+#    -I/home/tt/project/video/T5_SDK/sdk_lib/include/opengl/include/khronos/original/
+COMMON=-I. -I/home/visem/project/tools/sdk_lib/include/opengl/include \
+    -I/home/visem/project/tools/sdk_lib/include/opengl/include/khronos/original/
+
+OBJS = $(addprefix $(OBJDIR), $(OBJ))
+LIBNAME=libOpenGLWindow.a 
+
+#libOpenCV.a:$(OBJS)
+#	$(CC)	 -o libOpenCV.a  -fPIC -static -O2 $(SOURCE) -Wno-narrowing
+all: $(OBJDIR)  $(OBJS) $(LIBNAME)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+	
+$(OBJS): $(SOURCE) $(DEPS)
+
+	$(CC)  $(COMMON) $(CFLAGS) -c InitMosaic.cpp     -o  $(OBJDIR)/InitMosaic.o
+	$(CC)  $(COMMON) $(CFLAGS) -c esTransform.cpp     -o  $(OBJDIR)/esTransform.o
+	$(CC)  $(COMMON) $(CFLAGS) -c mtlloader.cpp     -o  $(OBJDIR)/mtlloader.o
+	$(CC)  $(COMMON) $(CFLAGS) -c objloader.cpp     -o  $(OBJDIR)/objloader.o
+	$(CC)  $(COMMON) $(CFLAGS) -c render.cpp     -o  $(OBJDIR)/render.o
+	$(CC)  $(COMMON) $(CFLAGS) -c tinystr.cpp     -o  $(OBJDIR)/tinystr.o
+	$(CC)  $(COMMON) $(CFLAGS) -c tinyxml.cpp     -o  $(OBJDIR)/tinyxml.o
+	$(CC)  $(COMMON) $(CFLAGS) -c tinyxmlerror.cpp     -o  $(OBJDIR)/tinyxmlerror.o
+	$(CC)  $(COMMON) $(CFLAGS) -c tinyxmlparser.cpp     -o  $(OBJDIR)/tinyxmlparser.o
+	$(CC)  $(COMMON) $(CFLAGS) -c xmltest.cpp     -o  $(OBJDIR)/xmltest.o
+
+$(LIBNAME):
+	$(CC) -shared  -o libOpenGLWindow.so   $(OBJS)
+	ar cr $(LIBNAME)  $(OBJS)
+	cp $(LIBNAME)  ~/tftpboot
+
+clean:
+	rm -rf   $(LIBNAME) $(OBJDIR)   ~/tftpboot/$(LIBNAME)
