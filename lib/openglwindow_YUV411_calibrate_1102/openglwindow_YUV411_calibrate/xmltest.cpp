@@ -214,6 +214,12 @@ void ReadParamsXML() {
 	mat_node = cvGetFileNodeByName(fs_read_xml,NULL,"C2");
 	cvReadRawData(fs_read_xml,mat_node,&parking_assistant_params.car_width,"i");
 
+	mat_node = cvGetFileNodeByName(fs_read_xml,NULL,"C3");
+	cvReadRawData(fs_read_xml,mat_node,&front_resizer.x,"i");
+
+	mat_node = cvGetFileNodeByName(fs_read_xml,NULL,"C4");
+	cvReadRawData(fs_read_xml,mat_node,&rear_resizer.x,"i");
+
 }
 
 
@@ -288,6 +294,14 @@ extern void WriteParamsXML()
 
 	cvStartWriteStruct(fs_write_xml,"C2",CV_NODE_SEQ,0,cvAttrList(NULL,NULL));
 	cvWriteRawData(fs_write_xml,&parking_assistant_params.car_width,3,"i");
+	cvEndWriteStruct(fs_write_xml);
+
+	cvStartWriteStruct(fs_write_xml,"C3",CV_NODE_SEQ,0,cvAttrList(NULL,NULL));
+	cvWriteRawData(fs_write_xml,&front_resizer.x,4,"i");
+	cvEndWriteStruct(fs_write_xml);
+
+	cvStartWriteStruct(fs_write_xml,"C4",CV_NODE_SEQ,0,cvAttrList(NULL,NULL));
+	cvWriteRawData(fs_write_xml,&rear_resizer.x,4,"i");
 	cvEndWriteStruct(fs_write_xml);
 
 	xml.SaveFile();

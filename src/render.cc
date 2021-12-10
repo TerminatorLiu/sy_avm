@@ -337,18 +337,23 @@ void RenderWindow(struct render_parameter *param)
     break;
   case ORIGIN_VIEW_AVM_MODE:
     switchmode = "ORIGIN_VIEW_AVM_MODE";
+    UpdateTexture(psrc);
     break;
   case ORIGIN_VIEW_BACK_MODE:
     switchmode = "ORIGIN_VIEW_BACK_MODE";
+    UpdateTexture(psrc);
     break;
   case ORIGIN_VIEW_FRONT_MODE:
     switchmode = "ORIGIN_VIEW_FRONT_MODE";
+    UpdateTexture(psrc);
     break;
   case ORIGIN_VIEW_LEFT_MODE:
     switchmode = "ORIGIN_VIEW_LEFT_MODE";
+    UpdateTexture(psrc);
     break;
   case ORIGIN_VIEW_RIGHT_MODE:
     switchmode = "ORIGIN_VIEW_RIGHT_MODE";
+    UpdateTexture(psrc);
     break;
   case ORIGIN_VIEW_DMS_MODE:
     switchmode = "ORIGIN_VIEW_DMS_MODE";
@@ -412,7 +417,11 @@ void RenderWindow(struct render_parameter *param)
     // SaveFile(param->camerabuf, 4);
     switchmode = "CONTRAINER_DISPLAY_MODE";
     psrc[4] = (unsigned char *)param->camerabuf[CAMERA_CONTAINER_DEV_ID].addr;
-
+    {
+    FILE *fp = fopen("aaaa.Y","wb");
+    fwrite(psrc[4],1,1280*720,fp);
+    fclose(fp);
+    }
     UpdateTexture(psrc);
     RunRender(VIEW_CONTAINER, steer / REVERSE_TRAJECTORY_COE);
     param->mode = VIEW_CONTAINER;
@@ -427,18 +436,33 @@ void RenderWindow(struct render_parameter *param)
     break;
   case ORIGIN_VIEW_AVM_MODE:
     switchmode = "ORIGIN_VIEW_AVM_MODE";
+    UpdateTexture(psrc);
+    RunRender(VIEW_OVERALL, steer / REVERSE_TRAJECTORY_COE);
+    param->mode = VIEW_OVERALL;
     break;
   case ORIGIN_VIEW_BACK_MODE:
     switchmode = "ORIGIN_VIEW_BACK_MODE";
+    UpdateTexture(psrc);
+    RunRender(VIEW_BACK_FULL_SCREEN, steer / REVERSE_TRAJECTORY_COE);
+    param->mode = VIEW_BACK_FULL_SCREEN;
     break;
   case ORIGIN_VIEW_FRONT_MODE:
     switchmode = "ORIGIN_VIEW_FRONT_MODE";
+    UpdateTexture(psrc);
+    RunRender(VIEW_FRONT_FULL_SCREEN, steer / REVERSE_TRAJECTORY_COE);
+    param->mode = VIEW_FRONT_FULL_SCREEN;
     break;
   case ORIGIN_VIEW_LEFT_MODE:
     switchmode = "ORIGIN_VIEW_LEFT_MODE";
+    UpdateTexture(psrc);
+    RunRender(VIEW_LEFT_FULL_SCREEN, steer / REVERSE_TRAJECTORY_COE);
+    param->mode = VIEW_LEFT_FULL_SCREEN;
     break;
   case ORIGIN_VIEW_RIGHT_MODE:
     switchmode = "ORIGIN_VIEW_RIGHT_MODE";
+    UpdateTexture(psrc);
+    RunRender(VIEW_RIGHT_FULL_SCREEN, steer / REVERSE_TRAJECTORY_COE);
+    param->mode = VIEW_RIGHT_FULL_SCREEN;
     break;
   case ORIGIN_VIEW_DMS_MODE:
     switchmode = "ORIGIN_VIEW_DMS_MODE";
@@ -447,9 +471,14 @@ void RenderWindow(struct render_parameter *param)
     switchmode = "ORIGIN_VIEW_CONTAINER_MODE";
     break;
   default:
-    switchmode = "unknown";
+    switchmode = "FRONT_DISPALY_MODE";
+
     psrc[4] = (unsigned char *)param->camerabuf[CAMERA_FRONT_DEV_ID].addr;
-    break;
+    param->mode = VIEW_UNDISTORT_FRONT;
+    UpdateTexture(psrc); //
+    RunRender(
+        param->mode,
+        steer / REVERSE_TRAJECTORY_COE); /*Reverse trajectory coefficient */
   }
 #endif
 

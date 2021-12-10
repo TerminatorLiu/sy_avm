@@ -118,6 +118,7 @@ void *CameraCalibRoutine(void *argc) {
   PrintArray(dtout, len);
   cameraCalib_busy_flag = 0;
   if (ret == 0) {
+    sleep(1);
     system("reboot");
   }
   return (void *)"cameraCalib_routine";

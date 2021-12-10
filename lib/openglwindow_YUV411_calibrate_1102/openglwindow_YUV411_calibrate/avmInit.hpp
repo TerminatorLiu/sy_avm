@@ -30,6 +30,9 @@
 #define SHADOW_X_OFFSET 0.0  
 #define SHADOW_Y_OFFSET 0.0 
 
+#define WIDVPBE 1280
+#define HEIVPBE 720
+
 typedef struct _vec2 {
   float x;
   float y;
@@ -189,6 +192,10 @@ extern camParams front_cam_params;
 extern camParams rear_cam_params;
 extern camParams left_cam_params;
 extern camParams right_cam_params;
+
+
+extern safImgRect front_resizer;
+extern safImgRect rear_resizer;
 
 extern unsigned char* pu8_cam_vir[4];
 extern int cameraCalib(int carLength, int carWidth, int chess2carFront);
