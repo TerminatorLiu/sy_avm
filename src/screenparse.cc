@@ -102,6 +102,7 @@ void *CameraCalibRoutine(void *argc) {
                       chess2carFront);
   cameraCalib_busy_flag = 1;
   ret = cameraCalib(carLength, carWidth, chess2carFront);
+  //ret = 0;
 
   if (ret == 0) {
     data = 0;
@@ -112,8 +113,11 @@ void *CameraCalibRoutine(void *argc) {
     data = 1;
     SCREENPARSEDBGprint("--------failed calibrate---------\r\n");
   }
-
   int len = EncodeJimuOutCommand(dtout, APP_CALIB_CMD, &data, 1);
+  AddTxBuffer(CCS_SER_IDX, dtout, len);
+  usleep(1e5);
+  AddTxBuffer(CCS_SER_IDX, dtout, len);
+  usleep(1e5);
   AddTxBuffer(CCS_SER_IDX, dtout, len);
   PrintArray(dtout, len);
   cameraCalib_busy_flag = 0;

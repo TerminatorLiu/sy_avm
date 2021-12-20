@@ -315,7 +315,7 @@ int32_t ParseMcuSerialMsg(uint8_t *dtin, uint8_t *dtout) {
       case MCU_FORWARD_CMD:
         /* tow byte sync char, one byte command char , one byte length , one
          */
-#if ENABLE_DISPLAYMODE_SWITCH == 0
+#if 1//ENABLE_DISPLAYMODE_SWITCH == 0
         ret = EncodeJimuOutCommand(dtout, MCU_FORWARD_REPLY_CMD, header->dt,
                                    header->len - 5);
         AddTxBuffer(CCS_SER_IDX, dtout, ret);

@@ -27,7 +27,7 @@ INC += -I ../include/opencv3410/
 # /home/visem/tftpboot/libOpenCV.a
 #sdk_lib/include/opengl/include/khronos/original sdk_openCV
 INC += -I$(T5_SDK)/sdk_lib/include/opengl/include/khronos/original/
-CFLAGS := -g $(INC) -Wno-write-strings -Wall -Wl,-rpath=/home/lib
+CFLAGS := -O2 $(INC) -Wno-write-strings -Wall -Wl,-rpath=/home/lib
 LIBS += -L../lib/ -lMNN -lncnn  -ltensorflow-lite #-lopencv_world -ldms_T5
 LIBS += -L../lib/  -lsdk_openCV -Llib -lGLESv2 -lmali  -lpthread
 LIBS += ../lib/openglwindow_YUV411_calibrate_1102/openglwindow_YUV411_calibrate/lib/libOpenGLWindow.a 

@@ -417,11 +417,6 @@ void RenderWindow(struct render_parameter *param)
     // SaveFile(param->camerabuf, 4);
     switchmode = "CONTRAINER_DISPLAY_MODE";
     psrc[4] = (unsigned char *)param->camerabuf[CAMERA_CONTAINER_DEV_ID].addr;
-    {
-    FILE *fp = fopen("aaaa.Y","wb");
-    fwrite(psrc[4],1,1280*720,fp);
-    fclose(fp);
-    }
     UpdateTexture(psrc);
     RunRender(VIEW_CONTAINER, steer / REVERSE_TRAJECTORY_COE);
     param->mode = VIEW_CONTAINER;
