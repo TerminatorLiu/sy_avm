@@ -27,6 +27,7 @@
 
 #include <semaphore.h>
 #include <stdint.h>
+#define STATIC_DEBUG (0)
 #define VEHICLE_TYPE (0) /*0:Fuel 1:Electric 2:Heavy Truck*/ 
 #define VEHICLE_TYPE_FUEL (0)
 #define VEHICLE_TYPE_ELECTRIC (1)

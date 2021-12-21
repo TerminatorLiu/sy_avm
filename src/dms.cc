@@ -8,7 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 
-//#include "opencv/cv.h"
+#include "opencv/cv.h"
 #include "dms.h"
 #include "fatigue_driving_c.h"
 #include "linux-serial-app.h"
@@ -81,11 +81,11 @@ int GetDmsBusyFlag() {
 
 void UpdateDmsData(void *data) {
   if (0 == GetDmsBusyFlag()) {
-    // g_dms_data_buffer = (char *)data;
-    // CvMat m = cvMat(720, 1280, CV_8UC1, g_dms_data_buffer);
-    // CvMat m2 = cvMat(1280, 720, CV_8UC1, g_dms_data_buffer_t);
-    // cvTranspose(&m, &m2);
-    // cvFlip(&m2, &m2, 0);
+    g_dms_data_buffer = (char *)data;
+    CvMat m = cvMat(720, 1280, CV_8UC1, g_dms_data_buffer);
+    CvMat m2 = cvMat(1280, 720, CV_8UC1, g_dms_data_buffer_t);
+    cvTranspose(&m, &m2);
+    cvFlip(&m2, &m2, 0);
     SetDmsBusyFlag(1);
     sem_post(&g_dms_sem);
   }
@@ -93,8 +93,9 @@ void UpdateDmsData(void *data) {
 
 static void UploadDMSDetectResult(const int32_t dms_res) {
   // printf("dms res:%d\r\n", dms_res);
-  if (0) {
+  if (1) {
     LOGOUT_INFO("dms result:%d", dms_res);
+    printf("dms result:%d\n", dms_res);
   }
 
   uint8_t dtout[16] = {0};
@@ -163,8 +164,8 @@ static void *DmsStartRoutine(void *argc) {
   int dms_res;
   SetDmsBusyFlag(1);
   g_dmshandle = NULL;
-  // g_dmshandle =
-  //     init_fatigue_driving(DMS_MODEL_PATH, DMS_WORK_MODE, NULL, false, false);
+  g_dmshandle =
+      init_fatigue_driving(DMS_MODEL_PATH, DMS_WORK_MODE, NULL, false, false);
   g_dms_data_buffer_t = (char *)malloc(921600);
   LOGOUT_INFO("dms init finished");
   LOGOUT_INFO("bsd init finished");
@@ -183,8 +184,8 @@ static void *DmsStartRoutine(void *argc) {
 
       SetDmsBusyFlag(1);
       dms_res = 0;
-      // dms_res = detect_fatigue_driving(g_dmshandle, g_dms_data_buffer_t, 720,
-      //                                  1280, speed, DMS_MASK, ++tm);
+      dms_res = detect_fatigue_driving(g_dmshandle, g_dms_data_buffer_t, 720,
+                                       1280, speed, DMS_MASK, ++tm);
       UploadDMSDetectResult(dms_res);
     }
     SetDmsBusyFlag(1);
@@ -195,7 +196,7 @@ static void *DmsStartRoutine(void *argc) {
 
 int InitDms(int mode, char *model_path) {
   int ret = -1;
-  //printf("dms version:%s\r\n", get_version_fatigue_driving());
+  printf("dms version:%s\r\n", get_version_fatigue_driving());
   ret = pthread_rwlock_init(&g_dms_flag_lock, NULL);
   ret = sem_init(&g_dms_sem, 0, 0);
 
@@ -210,7 +211,7 @@ void ExitDmsThread() {
 
 void DestroyDms() {
   if (g_dmshandle != NULL) {
-    //release_fatigue_driving(g_dmshandle);
+    release_fatigue_driving(g_dmshandle);
   }
   pthread_rwlock_destroy(&g_dms_flag_lock);
   if (g_dms_data_buffer_t != NULL) {

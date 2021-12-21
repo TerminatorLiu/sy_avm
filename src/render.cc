@@ -87,6 +87,29 @@ static const EGLint context_attribute_list[] = {EGL_CONTEXT_CLIENT_VERSION, 2,
 EGLDisplay egl_display;
 EGLSurface egl_surface;
 GLuint egl_program;
+#if STATIC_DEBUG
+unsigned char* gStaticDebugBuffer[4] = {0};
+int InitStaticDebug()
+{
+  for(int i = 0;i<4;++i)
+  {
+    gStaticDebugBuffer[i] = (unsigned char*)malloc(1382400);
+    memset(gStaticDebugBuffer[i],128,1382400);
+    char filename[128] = {0};
+    sprintf(filename,"test/%d.YUV",i);
+    FILE *fp = fopen(filename,"rb");
+    if(fp == NULL)
+    {
+      printf("can not load %s\n",filename);
+    }
+    
+    fread(gStaticDebugBuffer[i],1,921600,fp);
+    fclose(fp);
+  }
+
+}
+#endif
+
 
 /**
  * @brief  Initialize opengles running environment.
@@ -178,6 +201,9 @@ int InitWindow()
   AvmInit(allView, singleView);
 #else
   initMosaic(allView, singleView, EMPTY);
+#endif
+#if STATIC_DEBUG
+  InitStaticDebug();
 #endif
 }
 
@@ -293,6 +319,12 @@ void RenderWindow(struct render_parameter *param)
     psrc[CAMERA_LEFT_DEV_ID] = (unsigned char *)g_yuv_org_data.leftaddr;
     psrc[CAMERA_RIGTH_DEV_ID] = (unsigned char *)g_yuv_org_data.rightaddr;
   }
+#if STATIC_DEBUG
+    psrc[CAMERA_FRONT_DEV_ID] = gStaticDebugBuffer[0];
+    psrc[CAMERA_BACK_DEV_ID] =  gStaticDebugBuffer[1];
+    psrc[CAMERA_LEFT_DEV_ID] =  gStaticDebugBuffer[2];
+    psrc[CAMERA_RIGTH_DEV_ID] = gStaticDebugBuffer[3];
+#endif
   // printf("enter render\r\n");
   UpdateDmsData(psrc[CAMERA_DMS_DEV_ID]);
   gettimeofday(&tv, NULL);

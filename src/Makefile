@@ -27,9 +27,9 @@ INC += -I ../include/opencv3410/
 # /home/visem/tftpboot/libOpenCV.a
 #sdk_lib/include/opengl/include/khronos/original sdk_openCV
 INC += -I$(T5_SDK)/sdk_lib/include/opengl/include/khronos/original/
-CFLAGS := -O2 $(INC) -Wno-write-strings -Wall -Wl,-rpath=/home/lib
-LIBS += -L../lib/ -lMNN -lncnn  -ltensorflow-lite #-lopencv_world -ldms_T5
-LIBS += -L../lib/  -lsdk_openCV -Llib -lGLESv2 -lmali  -lpthread
+CFLAGS := -g $(INC) -Wno-write-strings -Wall -Wl,-rpath=/home/lib
+LIBS += -L../lib/ -lMNN -lncnn  -ltensorflow-lite -lopencv_world -ldms_T5
+LIBS += -L../lib/  -lsdk_openCV -Llib -lGLESv2 -lmali  -lpthread 
 LIBS += ../lib/openglwindow_YUV411_calibrate_1102/openglwindow_YUV411_calibrate/lib/libOpenGLWindow.a 
 
 CC = /home/lt/Desktop/T507/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-gcc

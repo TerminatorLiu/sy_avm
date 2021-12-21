@@ -47,6 +47,7 @@ pthread_t g_render_th;
 struct yuv_org_data g_yuv_org_data;
 int32_t g_yuv_org_flag = 0;
 
+
 int ResetSaveImage();
 int SaveImage();
 /**

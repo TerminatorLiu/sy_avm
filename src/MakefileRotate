@@ -30,9 +30,8 @@ INC += -I ../include/opencv3410/
 #sdk_lib/include/opengl/include/khronos/original sdk_openCV
 INC += -I$(T5_SDK)/sdk_lib/include/opengl/include/khronos/original/
 CFLAGS := -O2 $(INC) -Wno-write-strings -Wall -DSCREEN_ROTATE
-LIBS += -L/home/visem/project/linuxvideo/app/lib/dms_4.2.25_demo/lib  -lMNN -lncnn -ltensorflow-lite #-lopencv_world -ldms_T5
+LIBS += -L/home/visem/project/linuxvideo/app/lib/dms_4.2.25_demo/lib  -lMNN -lncnn -ltensorflow-lite -lopencv_world -ldms_T5
 LIBS += -L../lib ../lib/openglwindow_YUV411_calibrate_1108_rotate/lib/libOpenGLWindowRotate.a -L/home/visem/tftpboot/ -lsdk_openCV  -Llib -lGLESv2 -lmali  -lpthread
-
 
 CC = /home/lt/Desktop/T507/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-gcc
 CXX = /home/lt/Desktop/T507/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-g++
