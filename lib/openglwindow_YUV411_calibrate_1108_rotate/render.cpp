@@ -30,6 +30,10 @@ safImgRect g_single_view;
 safImgRect g_fb_single_view;
 safImgRect g_lr_single_view;
 
+safImgRect front_resizer;
+safImgRect rear_resizer;
+
+
 GLuint texture_y[5];
 GLuint texture_u[5];
 GLuint texture_v[5];
@@ -37,8 +41,8 @@ GLuint texture_v[5];
 GLuint texture_res[4];
 
 float lumia_ave[12];
-vec3 color_ave[12];
-vec3 color_count[AVERAGE_COUNT][12];
+vec3 color_ave[12];  
+vec3 color_count[AVERAGE_COUNT][12];  
 
 vec3 *ver_coord_point_front;
 vec2 *tex_coord_point_front;
@@ -52,6 +56,7 @@ int ver_count_front;
 int ver_count_back;
 
 vec3 vertices_rear_traj_line_point[11][LENGTH * 2];
+vec3 vertices_front_traj_line_point[11][LENGTH * 2];
 
 GLuint rotate_all_view_texture;
 GLuint rotate_all_view_frame_buffer;
@@ -191,25 +196,25 @@ const char fragment_mosaic_source[] =
 
 const char vertex_blend_source[] =
 {
-    "#version 300 es										\n"
-    "layout(location = 0) in vec3 vPosition;			  \n"
-    "uniform mat4 mvp;										\n"
-    "void main()											\n"
-    "{														\n"
-    "	 gl_Position = mvp * vec4(vPosition, 1.0);		 \n"
-    "}														\n"
+	"#version 300 es										\n"
+	"layout(location = 0) in vec3 vPosition;			  \n"
+	"uniform mat4 mvp;										\n"
+	"void main()											\n"
+	"{														\n"
+	"	 gl_Position = mvp * vec4(vPosition, 1.0);		 \n"
+	"}														\n"
 };
 
 const char fragment_blend_source[] =
 {
-    "#version 300 es											\n"
-    "precision mediump float; 									\n"
-    "uniform vec4 outColor; 					  \n"
-    "out vec4 fragColor;										\n"
-    "void main()												\n"
-    "{															\n"
-    "	 fragColor = outColor;			\n"
-    "}															\n"
+	"#version 300 es											\n"
+	"precision mediump float; 									\n"
+	"uniform vec4 outColor; 					  \n"
+	"out vec4 fragColor;										\n"
+	"void main()												\n"
+	"{															\n"
+	"	 fragColor = outColor;			\n"
+	"}															\n"
 };
 
 
@@ -300,21 +305,21 @@ void CaculateColorCoeff2D(unsigned char **image_buffer)
     static unsigned int run_count = 0;
     int index;
 
-    if ( (NULL == image_buffer[0]) || (NULL == image_buffer[1]) || (NULL == image_buffer[2]) || (NULL == image_buffer[3]) )
-    {
-        /*check image address*/
-        return ;
-    }
+	if ( (NULL == image_buffer[0]) || (NULL == image_buffer[1]) || (NULL == image_buffer[2]) || (NULL == image_buffer[3]) )
+	{
+		/*check image address*/
+		return ;
+	}
 
     index = run_count % AVERAGE_COUNT;
 
     lumia_sum0 = 0;
-    lumia_sum1 = 0;
+	lumia_sum1 = 0;
 
     for(i = 0; i < tex_coords_statistics.gl_tex_coord_fl_f.size(); ++i)
     {
         index0 = tex_coords_statistics.gl_tex_coord_fl_f[i];
-        lumia_sum0 += image_buffer[0][index0];
+		lumia_sum0 += image_buffer[0][index0];
 
         index1 = tex_coords_statistics.gl_tex_coord_fl_l[i];
         lumia_sum1 += image_buffer[2][index1];
@@ -331,7 +336,7 @@ void CaculateColorCoeff2D(unsigned char **image_buffer)
 
 
     lumia_sum0 = 0;
-    lumia_sum1 = 0;
+	lumia_sum1 = 0;
 
     for(i = 0; i < tex_coords_statistics.gl_tex_coord_fr_f.size(); ++i)
     {
@@ -354,7 +359,7 @@ void CaculateColorCoeff2D(unsigned char **image_buffer)
 
 
     lumia_sum0 = 0;
-    lumia_sum1 = 0;
+	lumia_sum1 = 0;
 
     for(i = 0; i < tex_coords_statistics.gl_tex_coord_bl_b.size(); ++i)
     {
@@ -376,8 +381,8 @@ void CaculateColorCoeff2D(unsigned char **image_buffer)
     rgb_color[5].z = 1.0 * lumia_sum1 / count;
 
 
-    lumia_sum0 = 0;
-    lumia_sum1 = 0;
+	lumia_sum0 = 0;
+	lumia_sum1 = 0;
 
     for(i = 0; i < tex_coords_statistics.gl_tex_coord__br_b.size(); ++i)
     {
@@ -399,12 +404,12 @@ void CaculateColorCoeff2D(unsigned char **image_buffer)
     rgb_color[7].y = 1.0 * lumia_sum1 / count;
     rgb_color[7].z = 1.0 * lumia_sum1 / count;
 
-    for(i = 0; i < 8; ++i)
-    {
-        color_ave[i].x = rgb_color[i].x / 255.0;
-        color_ave[i].y = rgb_color[i].y / 255.0;
-        color_ave[i].z = rgb_color[i].z / 255.0;
-    }
+	for(i = 0; i < 8; ++i)
+	{
+		color_ave[i].x = rgb_color[i].x / 255.0;
+		color_ave[i].y = rgb_color[i].y / 255.0;
+		color_ave[i].z = rgb_color[i].z / 255.0;
+	}
 
     color_ave[8].x = (color_ave[0].x + color_ave[1].x) / 2;
     color_ave[8].y = (color_ave[0].y + color_ave[1].y) / 2;
@@ -430,25 +435,25 @@ void LoadRes(int w, int h)
 {
     int i;
 
-    int width;
-    int height;
+    int width; 
+    int height; 
     int channel;
-    unsigned char *res_buffer[4];
-    unsigned char *p_src_y;
-    unsigned char *p_src_u;
-    unsigned char *p_src_v;
+	unsigned char *res_buffer[4];
+	unsigned char *p_src_y;
+	unsigned char *p_src_u; 
+	unsigned char *p_src_v;
+	
+	unsigned char *yuv_buffer[5];
+	char file_path[256] = {0};
+	FILE *fp;
 
-    unsigned char *yuv_buffer[5];
-    char file_path[256] = {0};
-    FILE *fp;
-
-    for(i = 0; i < 4; ++i)
+	for(i = 0; i < 5; ++i)
     {
         yuv_buffer[i] = (unsigned char *)malloc(w * h * 3 / 2);
         /*sprintf(file_path, "../test/aa%d.YUV", i);
-        fp = fopen(file_path, "rb");
-        fread(yuv_buffer[i], 1, w * h * 3 / 2, fp);
-        fclose(fp);*/
+		fp = fopen(file_path, "rb");
+            fread(yuv_buffer[i], 1, w*h*3/2, fp);
+            fclose(fp);*/
 
         p_src_y = yuv_buffer[i];
         p_src_u = p_src_y + w * h;
@@ -465,183 +470,190 @@ void LoadRes(int w, int h)
     }
 
 
-    stbi_set_flip_vertically_on_load(0);
+	stbi_set_flip_vertically_on_load(0);
 
     res_buffer[1] = stbi_load("./test/car.png", &width, &height, &channel, 0);
     glGenTextures( 1, &texture_res[0]);
     BindTexture(texture_res[0], res_buffer[1], width, height, GL_RGBA);
+
+   	/*pu8_cam_vir[0] = yuv_buffer[0];
+   	pu8_cam_vir[1] = yuv_buffer[1];
+   	pu8_cam_vir[2] = yuv_buffer[2];
+   	pu8_cam_vir[3] = yuv_buffer[3];
+
+   	cameraCalib(920, 310, 116);*/
 }
 
 
 
 GLuint EsLoadShader ( GLenum type, const char *shaderSrc )
 {
-    GLuint shader;
-    GLint compiled;
-    char *infoLog;
+   GLuint shader;
+   GLint compiled;
+   char *infoLog;
 
-    // Create the shader object
-    shader = glCreateShader ( type );
+   // Create the shader object
+   shader = glCreateShader ( type );
 
-    if ( shader == 0 )
-    {
-        return 0;
-    }
+   if ( shader == 0 )
+   {
+      return 0;
+   }
 
-    // Load the shader source
-    glShaderSource ( shader, 1, &shaderSrc, NULL );
+   // Load the shader source
+   glShaderSource ( shader, 1, &shaderSrc, NULL );
 
-    // Compile the shader
-    glCompileShader ( shader );
+   // Compile the shader
+   glCompileShader ( shader );
 
-    // Check the compile status
-    glGetShaderiv ( shader, GL_COMPILE_STATUS, &compiled );
+   // Check the compile status
+   glGetShaderiv ( shader, GL_COMPILE_STATUS, &compiled );
 
-    if ( !compiled )
-    {
-        GLint infoLen = 0;
+   if ( !compiled )
+   {
+      GLint infoLen = 0;
 
-        glGetShaderiv ( shader, GL_INFO_LOG_LENGTH, &infoLen );
+      glGetShaderiv ( shader, GL_INFO_LOG_LENGTH, &infoLen );
 
-        if ( infoLen > 1 )
-        {
-            infoLog = (char *)malloc ( sizeof ( char ) * infoLen );
+      if ( infoLen > 1 )
+      {
+         infoLog = (char*)malloc ( sizeof ( char ) * infoLen );
 
-            glGetShaderInfoLog ( shader, infoLen, NULL, infoLog );
-            printf ( "Error compiling shader:\n%s\n", infoLog );
+         glGetShaderInfoLog ( shader, infoLen, NULL, infoLog );
+         printf ( "Error compiling shader:\n%s\n", infoLog );
 
-            free ( infoLog );
-        }
+         free ( infoLog );
+      }
 
-        glDeleteShader ( shader );
-        return 0;
-    }
+      glDeleteShader ( shader );
+      return 0;
+   }
 
-    return shader;
+   return shader;
 
 }
 
 
 GLuint EsLoadProgram ( const char *vertShaderSrc, const char *fragShaderSrc )
 {
-    GLuint vertexShader;
-    GLuint fragmentShader;
-    GLuint programObject;
-    GLint linked;
-    char *infoLog;
+   GLuint vertexShader;
+   GLuint fragmentShader;
+   GLuint programObject;
+   GLint linked;
+   char *infoLog;
 
-    // Load the vertex/fragment shaders
-    vertexShader = EsLoadShader ( GL_VERTEX_SHADER, vertShaderSrc );
+   // Load the vertex/fragment shaders
+   vertexShader = EsLoadShader ( GL_VERTEX_SHADER, vertShaderSrc );
 
-    if ( vertexShader == 0 )
-    {
-        return 0;
-    }
+   if ( vertexShader == 0 )
+   {
+      return 0;
+   }
 
-    fragmentShader = EsLoadShader ( GL_FRAGMENT_SHADER, fragShaderSrc );
+   fragmentShader = EsLoadShader ( GL_FRAGMENT_SHADER, fragShaderSrc );
 
-    if ( fragmentShader == 0 )
-    {
-        glDeleteShader ( vertexShader );
-        return 0;
-    }
+   if ( fragmentShader == 0 )
+   {
+      glDeleteShader ( vertexShader );
+      return 0;
+   }
 
-    // Create the program object
-    programObject = glCreateProgram ( );
+   // Create the program object
+   programObject = glCreateProgram ( );
 
-    if ( programObject == 0 )
-    {
-        return 0;
-    }
+   if ( programObject == 0 )
+   {
+      return 0;
+   }
 
-    glAttachShader ( programObject, vertexShader );
-    glAttachShader ( programObject, fragmentShader );
+   glAttachShader ( programObject, vertexShader );
+   glAttachShader ( programObject, fragmentShader );
 
-    // Link the program
-    glLinkProgram ( programObject );
+   // Link the program
+   glLinkProgram ( programObject );
 
-    // Check the link status
-    glGetProgramiv ( programObject, GL_LINK_STATUS, &linked );
+   // Check the link status
+   glGetProgramiv ( programObject, GL_LINK_STATUS, &linked );
 
-    if ( !linked )
-    {
-        GLint infoLen = 0;
+   if ( !linked )
+   {
+      GLint infoLen = 0;
 
-        glGetProgramiv ( programObject, GL_INFO_LOG_LENGTH, &infoLen );
+      glGetProgramiv ( programObject, GL_INFO_LOG_LENGTH, &infoLen );
 
-        if ( infoLen > 1 )
-        {
-            infoLog = (char *)malloc ( sizeof ( char ) * infoLen );
+      if ( infoLen > 1 )
+      {
+         infoLog = (char*)malloc ( sizeof ( char ) * infoLen );
+         
+         glGetProgramInfoLog ( programObject, infoLen, NULL, infoLog );
+         printf ( "Error linking program:\n%s\n", infoLog );
 
-            glGetProgramInfoLog ( programObject, infoLen, NULL, infoLog );
-            printf ( "Error linking program:\n%s\n", infoLog );
+         free ( infoLog );
+      }
 
-            free ( infoLog );
-        }
+      glDeleteProgram ( programObject );
+      return 0;
+   }
 
-        glDeleteProgram ( programObject );
-        return 0;
-    }
+   // Free up no longer needed shader resources
+   glDeleteShader ( vertexShader );
+   glDeleteShader ( fragmentShader );
 
-    // Free up no longer needed shader resources
-    glDeleteShader ( vertexShader );
-    glDeleteShader ( fragmentShader );
-
-    return programObject;
+   return programObject;
 }
 
 
 
 
-static void SetBool(GLuint programId, const char *name, bool value)
+static void SetBool(GLuint programId, const char *name, bool value) 
 {
     glUniform1i(glGetUniformLocation(programId, name), (int) value);
 }
 
 
-static void SetInt(GLuint programId, const char *name, int value)
+static void SetInt(GLuint programId, const char *name, int value) 
 {
     glUniform1i(glGetUniformLocation(programId, name), value);
 }
 
-static void SetFloat(GLuint programId, const char *name, float value)
+static void SetFloat(GLuint programId, const char *name, float value) 
 {
     glUniform1f(glGetUniformLocation(programId, name), value);
 }
 
-static void SetVec2(GLuint programId, const char *name, const vec2 value)
+static void SetVec2(GLuint programId, const char *name, const vec2 value) 
 {
     glUniform2fv(glGetUniformLocation(programId, name), 1, &value.x);
 }
 
-static void SetVec2(GLuint programId, const char *name, float x, float y)
+static void SetVec2(GLuint programId, const char *name, float x, float y) 
 {
     glUniform2f(glGetUniformLocation(programId, name), x, y);
 }
 
-static void SetVec3(GLuint programId, const char *name, const vec3 value)
+static void SetVec3(GLuint programId, const char *name, const vec3 value) 
 {
     glUniform3fv(glGetUniformLocation(programId, name), 1, &value.x);
 }
 
-static void SetVec3(GLuint programId, const char *name, float x, float y, float z)
+static void SetVec3(GLuint programId, const char *name, float x, float y, float z) 
 {
     glUniform3f(glGetUniformLocation(programId, name), x, y, z);
 }
 
-static void SetVec4(GLuint programId, const char *name, const vec4 value)
+static void SetVec4(GLuint programId, const char *name, const vec4 value) 
 {
     glUniform4fv(glGetUniformLocation(programId, name), 1, &value.r);
 }
 
-static void SetVec4(GLuint programId, const char *name, float x, float y, float z, float w)
+static void SetVec4(GLuint programId, const char *name, float x, float y, float z, float w) 
 {
     glUniform4f(glGetUniformLocation(programId, name), x, y, z, w);
 }
 
 
 
-static void SetMat4(GLuint programId, const char *name, ESMatrix mat)
+static void SetMat4(GLuint programId, const char *name, ESMatrix mat) 
 {
     glUniformMatrix4fv(glGetUniformLocation(programId, name), 1, GL_FALSE, &mat.m[0][0]);
 }
@@ -652,111 +664,89 @@ static void SetMat4(GLuint programId, const char *name, ESMatrix mat)
 void RotationMatrixToEulerAngle(float *R, float *alpha, float *beta, float *gamma)
 {
     float sy = sqrt(R[7] * R[7] +  R[8] * R[8]);
-
+ 
     int singular = sy < 1e-6; // If
-
+ 
     float x, y, z;
-    if (!singular)
+    if (!singular) 
     {
         x = atan2(R[7], R[8]);
         y = atan2(-R[6], sy);
         z = atan2(R[3], R[0]);
-    }
-    else
+    } 
+    else 
     {
         x = atan2(-R[5], R[4]);
         y = atan2(-R[6], sy);
         z = 0;
     }
 
-    *alpha = x;
-    *beta = y;
-    *gamma = z;
+	*alpha = x;
+	*beta = y;
+	*gamma = z;
 }
 
 
-double TowFac(double *b)
-{
-    return b[0] * b[3] - b[1] * b[2];
-}
+double TowFac(double *b) { return b[0] * b[3] - b[1] * b[2]; }
 
-void Copy3To2(double *a, double *b, int i, int j)
-{
-    int m = 0;
-    int n = 0;
-    int count = 0;
-    for (m = 0; m < 3; ++m)
-    {
-        for (n = 0; n < 3; ++n)
-        {
-            if (m != i && n != j)
-            {
-                count++;
-                b[((count - 1) / 2) * 2 + (count - 1) % 2] = a[m * 3 + n];
-            }
-        }
+void Copy3To2(double *a, double *b, int i, int j) {
+  int m = 0;
+  int n = 0;
+  int count = 0;
+  for (m = 0; m < 3; ++m) {
+    for (n = 0; n < 3; ++n) {
+      if (m != i && n != j) {
+        count++;
+        b[((count - 1) / 2) * 2 + (count - 1) % 2] = a[m * 3 + n];
+      }
     }
+  }
 }
 
-double ThreeSum(double *a, double *b)
-{
-    double sum = 0;
-    for (int i = 0; i < 3; ++i)
-    {
-        Copy3To2(a, b, 0, i);
-        if (i % 2 == 0)
-        {
-            sum += a[i] * TowFac(b);
-        }
-        else
-        {
-            sum -= a[i] * TowFac(b);
-        }
+double ThreeSum(double *a, double *b) {
+  double sum = 0;
+  for (int i = 0; i < 3; ++i) {
+    Copy3To2(a, b, 0, i);
+    if (i % 2 == 0) {
+      sum += a[i] * TowFac(b);
+    } else {
+      sum -= a[i] * TowFac(b);
     }
-    return sum;
+  }
+  return sum;
 }
 
-void CalCArray(double *a, double *b, double *c)
-{
-    int i = 0;
-    int j = 0;
-    for (i = 0; i < 3; ++i)
-    {
-        for (j = 0; j < 3; ++j)
-        {
-            Copy3To2(a, b, i, j);
-            if ((i + j) % 2 == 0)
-            {
-                c[j * 3 + i] = TowFac(b);
-            }
-            else
-            {
-                c[j * 3 + i] = -TowFac(b);
-            }
-        }
+void CalCArray(double *a, double *b, double *c) {
+  int i = 0;
+  int j = 0;
+  for (i = 0; i < 3; ++i) {
+    for (j = 0; j < 3; ++j) {
+      Copy3To2(a, b, i, j);
+      if ((i + j) % 2 == 0) {
+        c[j * 3 + i] = TowFac(b);
+      } else {
+        c[j * 3 + i] = -TowFac(b);
+      }
     }
+  }
 }
 
-void InvertArray(double *c, double A)
-{
-    int i = 0;
-    int j = 0;
-    for (i = 0; i < 3; ++i)
-    {
-        for (j = 0; j < 3; ++j)
-        {
-            c[i * 3 + j] /= A;
-        }
+void InvertArray(double *c, double A) {
+  int i = 0;
+  int j = 0;
+  for (i = 0; i < 3; ++i) {
+    for (j = 0; j < 3; ++j) {
+      c[i * 3 + j] /= A;
     }
+  }
 }
 
-void InvertMatrix(double *src, double *dst)
-{
+void InvertMatrix(double *src, double *dst) {
 
-    double b[2][2];
-    double t = ThreeSum(src, &b[0][0]);
-    CalCArray(src, &b[0][0], dst);
-    InvertArray(dst, t);
+  double b[2][2];
+  double t = ThreeSum(src, &b[0][0]);
+  CalCArray(src, &b[0][0], dst);
+  InvertArray(dst, t);
 }
 
 
@@ -766,10 +756,10 @@ int InitShader(void)
     h_program_handle[0] = EsLoadProgram ( vertex_source, fragment_source );
     h_program_handle[1] = EsLoadProgram ( vertex_mosaic_source, fragment_mosaic_source );
     h_program_handle[2] = EsLoadProgram ( vertex_bmp_show_source, fragment_bmp_show_source );
-    h_program_handle[3] = EsLoadProgram ( vertex_blend_source, fragment_blend_source );
-    h_program_handle[4] = EsLoadProgram ( vertex_camera_source, fragment_camera_source );
+	h_program_handle[3] = EsLoadProgram ( vertex_blend_source, fragment_blend_source );
+	h_program_handle[4] = EsLoadProgram ( vertex_camera_source, fragment_camera_source );
 
-    printf("%d %d %d %d %d\n", h_program_handle[0], h_program_handle[1], h_program_handle[2], h_program_handle[3], h_program_handle[4]);
+    printf("%d %d %d %d %d\n",h_program_handle[0],h_program_handle[1],h_program_handle[2],h_program_handle[3],h_program_handle[4]);
 
     return GL_TRUE;
 }
@@ -778,23 +768,23 @@ int InitShader(void)
 
 void Draw2DView()
 {
-    vec3 color_adjust[2];
-    ESMatrix matrix_MVP;
+	vec3 color_adjust[2];
+	ESMatrix matrix_MVP;
 
-    esMatrixLoadIdentity ( &matrix_MVP );
+	esMatrixLoadIdentity ( &matrix_MVP );	 
 
-    glBindFramebuffer(GL_FRAMEBUFFER, rotate_all_view_frame_buffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, rotate_all_view_frame_buffer);
 
-    glViewport(0, 0, g_all_view.width, g_all_view.height);
-
+	glViewport(0, 0, g_all_view.width, g_all_view.height);
+	
     glUseProgram(h_program_handle[0]);
-
+    
     /* Enable attributes for position, color and texture coordinates etc. */
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    SetMat4(h_program_handle[0], "mvp", matrix_MVP);
+	SetMat4(h_program_handle[0], "mvp", matrix_MVP); 
 
     //Front
     glBindBuffer(GL_ARRAY_BUFFER, vbo_mosaic_image.cam_vertices_points[0]);
@@ -807,13 +797,13 @@ void Draw2DView()
     color_adjust[0].x = color_ave[8].x - color_ave[0].x;
     color_adjust[0].y = color_ave[8].y - color_ave[0].y;
     color_adjust[0].z = color_ave[8].z - color_ave[0].z;
-
+    
     color_adjust[1].x = color_ave[9].x - color_ave[2].x;
     color_adjust[1].y = color_ave[9].y - color_ave[2].y;
     color_adjust[1].z = color_ave[9].z - color_ave[2].z;
-
-    SetVec3(h_program_handle[0], ADJUST(0), color_adjust[0]);
-    SetVec3(h_program_handle[0], ADJUST(1), color_adjust[1]);
+    
+    SetVec3(h_program_handle[0], ADJUST(0), color_adjust[0]); 
+    SetVec3(h_program_handle[0], ADJUST(1), color_adjust[1]); 
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_y[0]);
@@ -839,13 +829,13 @@ void Draw2DView()
     color_adjust[0].x = color_ave[10].x - color_ave[4].x;
     color_adjust[0].y = color_ave[10].y - color_ave[4].y;
     color_adjust[0].z = color_ave[10].z - color_ave[4].z;
-
+    
     color_adjust[1].x = color_ave[11].x - color_ave[6].x;
     color_adjust[1].y = color_ave[11].y - color_ave[6].y;
     color_adjust[1].z = color_ave[11].z - color_ave[6].z;
-
-    SetVec3(h_program_handle[0], ADJUST(0), color_adjust[0]);
-    SetVec3(h_program_handle[0], ADJUST(1), color_adjust[1]);
+    
+    SetVec3(h_program_handle[0], ADJUST(0), color_adjust[0]); 
+    SetVec3(h_program_handle[0], ADJUST(1), color_adjust[1]); 
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_y[1]);
@@ -868,15 +858,15 @@ void Draw2DView()
     glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
 
     color_adjust[0].x = color_ave[8].x - color_ave[1].x;
-    color_adjust[0].y = color_ave[8].y - color_ave[1].y;
-    color_adjust[0].z = color_ave[8].z - color_ave[1].z;
-
-    color_adjust[1].x = color_ave[10].x - color_ave[5].x;
-    color_adjust[1].y = color_ave[10].y - color_ave[5].y;
-    color_adjust[1].z = color_ave[10].z - color_ave[5].z;
-
-    SetVec3(h_program_handle[0], ADJUST(0), color_adjust[0]);
-    SetVec3(h_program_handle[0], ADJUST(1), color_adjust[1]);
+	color_adjust[0].y = color_ave[8].y - color_ave[1].y;
+	color_adjust[0].z = color_ave[8].z - color_ave[1].z;
+	
+	color_adjust[1].x = color_ave[10].x - color_ave[5].x;
+	color_adjust[1].y = color_ave[10].y - color_ave[5].y;
+	color_adjust[1].z = color_ave[10].z - color_ave[5].z;
+	
+    SetVec3(h_program_handle[0], ADJUST(0), color_adjust[0]); 
+	SetVec3(h_program_handle[0], ADJUST(1), color_adjust[1]); 
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_y[2]);
@@ -899,15 +889,15 @@ void Draw2DView()
     glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
 
     color_adjust[0].x = color_ave[9].x - color_ave[3].x;
-    color_adjust[0].y = color_ave[9].y - color_ave[3].y;
-    color_adjust[0].z = color_ave[9].z - color_ave[3].z;
+	color_adjust[0].y = color_ave[9].y - color_ave[3].y;
+	color_adjust[0].z = color_ave[9].z - color_ave[3].z;
+	
+	color_adjust[1].x = color_ave[11].x - color_ave[7].x;
+	color_adjust[1].y = color_ave[11].y - color_ave[7].y;
+	color_adjust[1].z = color_ave[11].z - color_ave[7].z;
 
-    color_adjust[1].x = color_ave[11].x - color_ave[7].x;
-    color_adjust[1].y = color_ave[11].y - color_ave[7].y;
-    color_adjust[1].z = color_ave[11].z - color_ave[7].z;
-
-    SetVec3(h_program_handle[0], ADJUST(0), color_adjust[0]);
-    SetVec3(h_program_handle[0], ADJUST(1), color_adjust[1]);
+    SetVec3(h_program_handle[0], ADJUST(0), color_adjust[0]); 
+	SetVec3(h_program_handle[0], ADJUST(1), color_adjust[1]); 
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_y[3]);
@@ -923,14 +913,14 @@ void Draw2DView()
 
 
     glUseProgram(h_program_handle[1]);
-
+    
     /* Enable attributes for position, color and texture coordinates etc. */
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
     glEnableVertexAttribArray(3);
 
-    SetMat4(h_program_handle[1], "mvp", matrix_MVP);
+	SetMat4(h_program_handle[1], "mvp", matrix_MVP);
 
 
     //front  left
@@ -944,15 +934,15 @@ void Draw2DView()
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
     color_adjust[0].x = color_ave[8].x - color_ave[0].x;
-    color_adjust[0].y = color_ave[8].y - color_ave[0].y;
-    color_adjust[0].z = color_ave[8].z - color_ave[0].z;
-
-    color_adjust[1].x = color_ave[8].x - color_ave[1].x;
-    color_adjust[1].y = color_ave[8].y - color_ave[1].y;
-    color_adjust[1].z = color_ave[8].z - color_ave[1].z;
-
-    SetVec3(h_program_handle[1], ADJUST(0), color_adjust[0]);
-    SetVec3(h_program_handle[1], ADJUST(1), color_adjust[1]);
+	color_adjust[0].y = color_ave[8].y - color_ave[0].y;
+	color_adjust[0].z = color_ave[8].z - color_ave[0].z;
+	
+	color_adjust[1].x = color_ave[8].x - color_ave[1].x;
+	color_adjust[1].y = color_ave[8].y - color_ave[1].y;
+	color_adjust[1].z = color_ave[8].z - color_ave[1].z;
+	
+	SetVec3(h_program_handle[1], ADJUST(0), color_adjust[0]); 
+	SetVec3(h_program_handle[1], ADJUST(1), color_adjust[1]); 
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_y[0]);
@@ -989,15 +979,15 @@ void Draw2DView()
 
 
     color_adjust[0].x = color_ave[9].x - color_ave[2].x;
-    color_adjust[0].y = color_ave[9].y - color_ave[2].y;
-    color_adjust[0].z = color_ave[9].z - color_ave[2].z;
-
-    color_adjust[1].x = color_ave[9].x - color_ave[3].x;
-    color_adjust[1].y = color_ave[9].y - color_ave[3].y;
-    color_adjust[1].z = color_ave[9].z - color_ave[3].z;
-
-    SetVec3(h_program_handle[1], ADJUST(0), color_adjust[0]);
-    SetVec3(h_program_handle[1], ADJUST(1), color_adjust[1]);
+	color_adjust[0].y = color_ave[9].y - color_ave[2].y;
+	color_adjust[0].z = color_ave[9].z - color_ave[2].z;
+	
+	color_adjust[1].x = color_ave[9].x - color_ave[3].x;
+	color_adjust[1].y = color_ave[9].y - color_ave[3].y;
+	color_adjust[1].z = color_ave[9].z - color_ave[3].z;
+	
+	SetVec3(h_program_handle[1], ADJUST(0), color_adjust[0]); 
+	SetVec3(h_program_handle[1], ADJUST(1), color_adjust[1]); 
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_y[0]);
@@ -1033,15 +1023,15 @@ void Draw2DView()
 
 
     color_adjust[0].x = color_ave[10].x - color_ave[4].x;
-    color_adjust[0].y = color_ave[10].y - color_ave[4].y;
-    color_adjust[0].z = color_ave[10].z - color_ave[4].z;
-
-    color_adjust[1].x = color_ave[10].x - color_ave[5].x;
-    color_adjust[1].y = color_ave[10].y - color_ave[5].y;
-    color_adjust[1].z = color_ave[10].z - color_ave[5].z;
-
-    SetVec3(h_program_handle[1], ADJUST(0), color_adjust[0]);
-    SetVec3(h_program_handle[1], ADJUST(1), color_adjust[1]);
+	color_adjust[0].y = color_ave[10].y - color_ave[4].y;
+	color_adjust[0].z = color_ave[10].z - color_ave[4].z;
+	
+	color_adjust[1].x = color_ave[10].x - color_ave[5].x;
+	color_adjust[1].y = color_ave[10].y - color_ave[5].y;
+	color_adjust[1].z = color_ave[10].z - color_ave[5].z;
+	
+	SetVec3(h_program_handle[1], ADJUST(0), color_adjust[0]); 
+	SetVec3(h_program_handle[1], ADJUST(1), color_adjust[1]); 
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_y[1]);
@@ -1077,17 +1067,17 @@ void Draw2DView()
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
     color_adjust[0].x = color_ave[11].x - color_ave[6].x;
-    color_adjust[0].y = color_ave[11].y - color_ave[6].y;
-    color_adjust[0].z = color_ave[11].z - color_ave[6].z;
+	color_adjust[0].y = color_ave[11].y - color_ave[6].y;
+	color_adjust[0].z = color_ave[11].z - color_ave[6].z;
+	
+	color_adjust[1].x = color_ave[11].x - color_ave[7].x;
+	color_adjust[1].y = color_ave[11].y - color_ave[7].y;
+	color_adjust[1].z = color_ave[11].z - color_ave[7].z;
 
-    color_adjust[1].x = color_ave[11].x - color_ave[7].x;
-    color_adjust[1].y = color_ave[11].y - color_ave[7].y;
-    color_adjust[1].z = color_ave[11].z - color_ave[7].z;
+	SetVec3(h_program_handle[1], ADJUST(0), color_adjust[0]); 
+	SetVec3(h_program_handle[1], ADJUST(1), color_adjust[1]); 
 
-    SetVec3(h_program_handle[1], ADJUST(0), color_adjust[0]);
-    SetVec3(h_program_handle[1], ADJUST(1), color_adjust[1]);
-
-    glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_y[1]);
     SetInt(h_program_handle[1], TEXTURE(1Y), 0);
     glActiveTexture(GL_TEXTURE1);
@@ -1109,65 +1099,97 @@ void Draw2DView()
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex_coords.glVertex_BR.size());
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_DEPTH_TEST);
+	
+	glUseProgram(h_program_handle[2]);
 
-    glUseProgram(h_program_handle[2]);
-
-    SetMat4(h_program_handle[2], "mvp", matrix_MVP);
+	SetMat4(h_program_handle[2], "mvp", matrix_MVP);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_mosaic_image.car_ver_tex_coord[0]);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_mosaic_image.car_ver_tex_coord[1]);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_res[0]);
-    SetInt(h_program_handle[2], "textureImg", 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture_res[0]);
+	SetInt(h_program_handle[2], "textureImg", 0);
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }
 
 
 void DrawUndistortBackCurve(ESMatrix ortho_matrix)
 {
-    int i;
-    vec4 color[4] = {{1.0, 0.0, 0.0, 0.5}, {1.0, 1.0, 0.0, 0.5}, {0.0, 1.0, 0.0, 0.5}, {0.0, 0.0, 0.0, 0.5}};
+	int i;
+	vec4 color[4] = {{1.0, 0.0, 0.0, 0.5}, {1.0, 1.0, 0.0, 0.5}, {0.0, 1.0, 0.0, 0.5}, {0.0, 0.0, 0.0, 0.5}};
 
-    glUseProgram(h_program_handle[3]);
+	glUseProgram(h_program_handle[3]);
 
-    SetMat4(h_program_handle[3], "mvp", ortho_matrix);
+	SetMat4(h_program_handle[3], "mvp", ortho_matrix); 
 
 
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
 
-    glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    for (i = 0; i < 6; ++i)
-    {
-        SetVec4(h_program_handle[3], "outColor", color[i / 2]);
+	for (i = 0; i < 6; ++i)
+	{
+		SetVec4(h_program_handle[3], "outColor", color[i / 2]); 
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_rear_traj_line_point[i]);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_rear_traj_line_point[i]);
 
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, LENGTH * 2);
-    }
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, LENGTH * 2);
+	}
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_rear_traj_line_point[6]);
-    for (i = 0; i < 3; ++i)
-    {
-        SetVec4(h_program_handle[3], "outColor", color[i]);
-        glDrawArrays(GL_TRIANGLE_STRIP, i * 4, 4);
-    }
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_rear_traj_line_point[6]);
+	for (i = 0; i < 3; ++i)
+	{
+		SetVec4(h_program_handle[3], "outColor", color[i]); 
+		glDrawArrays(GL_TRIANGLE_STRIP, i * 4, 4);
+	}
 
 }
+
+
+
+void DrawUndistortFrontCurve(ESMatrix ortho_matrix)
+{
+	int i;
+	vec4 color = {1.0, 1.0, 0.0, 0.75};
+
+	glUseProgram(h_program_handle[3]);
+
+	SetMat4(h_program_handle[3], "mvp", ortho_matrix); 
+
+
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+
+	glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	for (i = 0; i < 2; ++i)
+	{
+		SetVec4(h_program_handle[3], "outColor", color); 
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_front_traj_line_point[i]);
+
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, LENGTH * 2);
+	}
+
+}
+
 
 vec2 Undistort(float i, float j, const float *A, const float *dist_coeffs, undistortParams params, double *inv_r)
 {
@@ -1193,9 +1215,9 @@ vec2 Undistort(float i, float j, const float *A, const float *dist_coeffs, undis
     float z;
 
     float fx = A[0];
-    float fy = A[4];
-    float cx = A[2];
-    float cy = A[5];
+  	float fy = A[4];
+  	float cx = A[2];
+  	float cy = A[5];
 
     float k1 = dist_coeffs[0];
     float k2 = dist_coeffs[1];
@@ -1271,7 +1293,7 @@ vec2 Undistort(float i, float j, const float *A, const float *dist_coeffs, undis
         v = 0;
     }
 
-    /*normalize 0~1*/
+	/*normalize 0~1*/
     imgPoints.x = u / IMAGE_WIDTH;
     imgPoints.y = v / IMAGE_HEIGHT;
 
@@ -1313,7 +1335,7 @@ void ShowFourView()
     };
 
 
-    float tex_coord_view[] =
+    float tex_coord_view0[] =
     {
         0.0f,  1.0f,  // left-top
         1.0f,  1.0f,  // right-top
@@ -1321,12 +1343,28 @@ void ShowFourView()
         1.0f,  0.0f,  // right- buttom
     };
 
+    float tex_coord_view[] =
+    {
+        0.0f,  0.0f,  // left-top
+        0.0f,  1.0f,  // right-top
+        1.0f,  0.0f,  // left-buttom
+        1.0f,  1.0f,  // right- buttom
+    };
+
+    int x, y, width, height;
+
     ESMatrix ortho_matrix;
     esMatrixLoadIdentity ( &ortho_matrix );
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glViewport(g_single_view.x, g_single_view.y, g_single_view.width, g_single_view.height);
+    width = 720;
+    height = width * 9 / 16;
+    y = 0;
+    x = (1280 - height) / 2;
+
+    //glViewport(g_single_view.x, g_single_view.y, g_single_view.width, g_single_view.height);
+    glViewport(x, y, height, width);
 
     glUseProgram(h_program_handle[4]);
 
@@ -1334,27 +1372,10 @@ void ShowFourView()
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
-    SetMat4(h_program_handle[4], "mvp", ortho_matrix);
+    SetMat4(h_program_handle[4], "mvp", ortho_matrix); 
 
     //Front
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_view_front);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, tex_coord_view);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_y[0]);
-    SetInt(h_program_handle[4], TEXTURE(Y), 0);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture_u[0]);
-    SetInt(h_program_handle[4], TEXTURE(U), 1);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, texture_v[0]);
-    SetInt(h_program_handle[4], TEXTURE(V), 2);
-
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-
-    //Back
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_view_back);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, tex_coord_view);
 
     glActiveTexture(GL_TEXTURE0);
@@ -1366,30 +1387,13 @@ void ShowFourView()
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, texture_v[1]);
     SetInt(h_program_handle[4], TEXTURE(V), 2);
-
+    
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 
-    //Left
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_view_left);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, tex_coord_view);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_y[2]);
-    SetInt(h_program_handle[4], TEXTURE(Y), 0);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture_u[2]);
-    SetInt(h_program_handle[4], TEXTURE(U), 1);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, texture_v[2]);
-    SetInt(h_program_handle[4], TEXTURE(V), 2);
-
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-
-    //Right
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_view_right);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, tex_coord_view);
+    //Back
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_view_back);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, tex_coord_view);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_y[3]);
@@ -1400,13 +1404,131 @@ void ShowFourView()
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, texture_v[3]);
     SetInt(h_program_handle[4], TEXTURE(V), 2);
+    
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+
+    //Left
+ 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_view_left);
+ 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, tex_coord_view);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture_y[0]);
+    SetInt(h_program_handle[4], TEXTURE(Y), 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture_u[0]);
+    SetInt(h_program_handle[4], TEXTURE(U), 1);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, texture_v[0]);
+    SetInt(h_program_handle[4], TEXTURE(V), 2);
+    
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+
+    //Right
+  	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_view_right);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, tex_coord_view);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture_y[2]);
+    SetInt(h_program_handle[4], TEXTURE(Y), 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture_u[2]);
+    SetInt(h_program_handle[4], TEXTURE(U), 1);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, texture_v[2]);
+    SetInt(h_program_handle[4], TEXTURE(V), 2);
+    
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 
 
+void ShowSingleView(int view_mode)
+{
+    float vertices_view[] =
+    {
+        -1.0f, -1.0f, 0.0f,  // left-buttom
+        1.0f, -1.0f, 0.0f,	// right- buttom
+        -1.0f,	1.0f, 0.0f,   // right-top
+        1.0f,  1.0f, 0.0f,	 // left-top
+    };
 
+
+    float tex_coord_view[] =
+    {
+        0.0f,  0.0f,  // left-top
+        0.0f,  1.0f,  // right-top
+        1.0f,  0.0f,  // left-buttom
+        1.0f,  1.0f,  // right- buttom
+    };
+
+    int x, y, width, height;
+    int cam_id;
+
+    switch (view_mode)
+    {
+        case VIEW_FRONT:
+            cam_id = 0;
+            break;
+
+        case VIEW_BACK:
+            cam_id = 1;
+            break;
+
+        case VIEW_LEFT:
+            cam_id = 2;
+            break;
+
+        case VIEW_RIGHT:
+            cam_id = 3;
+            break;
+
+        case VIEW_DMS:
+        cam_id = 4;
+        break;
+
+        default:
+            cam_id = 0;
+            break;
+    }
+
+    ESMatrix ortho_matrix;
+    esMatrixLoadIdentity ( &ortho_matrix );
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    width = 720;
+    height = width * 9 / 16;
+    y = 0;
+    x = (1280 - height) / 2;
+
+    glViewport(x, y, height, width);
+
+    glUseProgram(h_program_handle[4]);
+
+    /* Enable attributes for position, color and texture coordinates etc. */
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
+    SetMat4(h_program_handle[4], "mvp", ortho_matrix); 
+
+    //Front
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_view);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, tex_coord_view);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture_y[cam_id]);
+    SetInt(h_program_handle[4], TEXTURE(Y), 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture_u[cam_id]);
+    SetInt(h_program_handle[4], TEXTURE(U), 1);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, texture_v[cam_id]);
+    SetInt(h_program_handle[4], TEXTURE(V), 2);
+    
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
 
 
 void DrawLRView(int view_mode)
@@ -1420,7 +1542,7 @@ void DrawLRView(int view_mode)
         -1.0f,	1.0f, 0.0f,   // right-top
         1.0f,  1.0f, 0.0f,	 // left-top
     };
-
+   
 
     float texcoord_view_l[] =
     {
@@ -1445,29 +1567,29 @@ void DrawLRView(int view_mode)
 
     switch(view_mode)
     {
-    case VIEW_FRONT_LEFT:
-    case VIEW_BACK_LEFT:
-        which_camera = 2;
-        cnt = 4;
-        verAddr = vertices_view;
-        texAddr = texcoord_view_l;
-        break;
-    case VIEW_FRONT_RIGHT:
-    case VIEW_BACK_RIGHT:
-        which_camera = 3;
-        cnt = 4;
-        verAddr = vertices_view;
-        texAddr = texcoord_view_r;
-        break;
-    default:
-        which_camera = 2;
-        cnt = 4;
-        verAddr = vertices_view;
-        texAddr = texcoord_view_l;
-        break;
+	    case VIEW_FRONT_LEFT:
+	    case VIEW_BACK_LEFT:
+	        which_camera = 2;
+	        cnt = 4;
+	        verAddr = vertices_view;
+	        texAddr = texcoord_view_l;
+	        break;
+	    case VIEW_FRONT_RIGHT:
+	    case VIEW_BACK_RIGHT:
+	        which_camera = 3;
+	        cnt = 4;
+	        verAddr = vertices_view;
+	        texAddr = texcoord_view_r;
+	        break;
+	    default:
+	        which_camera = 2;
+	        cnt = 4;
+	        verAddr = vertices_view;
+	        texAddr = texcoord_view_l;
+	        break;
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, rotate_lr_view_frame_buffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, rotate_lr_view_frame_buffer);
 
     esMatrixLoadIdentity ( &ortho_matrix );
 
@@ -1479,12 +1601,12 @@ void DrawLRView(int view_mode)
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     SetMat4(h_program_handle[4], "mvp", ortho_matrix);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, verAddr);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texAddr);
+ 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texAddr);
 
 
     glActiveTexture(GL_TEXTURE0);
@@ -1535,29 +1657,29 @@ void DrawFBView(int view_mode)
 
     switch(view_mode)
     {
-    case VIEW_FRONT_LEFT:
-    case VIEW_FRONT_RIGHT:
-        which_camera = 0;
-        cnt = 4;
-        verAddr = vertices_view;
-        texAddr = tex_coord_view;
-        break;
-    case VIEW_BACK_LEFT:
-    case VIEW_BACK_RIGHT:
-        which_camera = 1;
-        cnt = 4;
-        verAddr = vertices_view;
-        texAddr = tex_coord_view;
-        break;
-    default:
-        which_camera = 4;
-        cnt = 4;
-        verAddr = vertices_view;
-        texAddr = tex_coord_view;
-        break;
+	    case VIEW_FRONT_LEFT:
+	    case VIEW_FRONT_RIGHT:
+	        which_camera = 0;
+	        cnt = 4;
+	        verAddr = vertices_view;
+	        texAddr = tex_coord_view;
+	        break;
+	    case VIEW_BACK_LEFT:
+	    case VIEW_BACK_RIGHT:
+	        which_camera = 1;
+	        cnt = 4;
+	        verAddr = vertices_view;
+	        texAddr = tex_coord_view;
+	        break;
+	    default:
+	        which_camera = 4;
+	        cnt = 4;
+	        verAddr = vertices_view;
+	        texAddr = tex_coord_view;
+	        break;
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, rotate_fb_view_frame_buffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, rotate_fb_view_frame_buffer);
 
     esMatrixLoadIdentity ( &ortho_matrix );
 
@@ -1569,12 +1691,12 @@ void DrawFBView(int view_mode)
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     SetMat4(h_program_handle[4], "mvp", ortho_matrix);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, verAddr);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texAddr);
+ 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texAddr);
 
 
     glActiveTexture(GL_TEXTURE0);
@@ -1589,7 +1711,7 @@ void DrawFBView(int view_mode)
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, cnt);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }
 
@@ -1609,35 +1731,34 @@ vec3 Vec3(float x, float y, float z)
     return ret;
 }
 
-vec2 Function(float a1, float b1, float c1, float a2, float b2, float c2)
-{
-    float a3;
-    float b3;
-    float c3;
-    float a4;
-    float b4;
-    float c4;
-    vec2 res;
+vec2 Function(float a1, float b1, float c1, float a2, float b2, float c2) {
+  float a3;
+  float b3;
+  float c3;
+  float a4;
+  float b4;
+  float c4;
+  vec2 res;
 
-    a3 = a1 * a2;
-    a4 = a2 * a1;
-    b3 = b1 * a2;
-    b4 = b2 * a1;
-    c3 = c1 * a2;
-    c4 = c2 * a1;
+  a3 = a1 * a2;
+  a4 = a2 * a1;
+  b3 = b1 * a2;
+  b4 = b2 * a1;
+  c3 = c1 * a2;
+  c4 = c2 * a1;
 
-    res.y = (c3 - c4) / (b3 - b4);
+  res.y = (c3 - c4) / (b3 - b4);
 
-    a3 = a1 * b2;
-    a4 = a2 * b1;
-    b3 = b1 * b2;
-    b4 = b2 * b1;
-    c3 = c1 * b2;
-    c4 = c2 * b1;
+  a3 = a1 * b2;
+  a4 = a2 * b1;
+  b3 = b1 * b2;
+  b4 = b2 * b1;
+  c3 = c1 * b2;
+  c4 = c2 * b1;
 
-    res.x = (c3 - c4) / (a3 - a4);
+  res.x = (c3 - c4) / (a3 - a4);
 
-    return res;
+  return res;
 }
 
 
@@ -1650,29 +1771,29 @@ vec2 Function2(vec2 dist, const float *a, undistortParams params, double *inv_r)
     float cy;
     vec2 imgPoints;
     vec2 point;
-    float a1;
-    float b1;
-    float c1;
-    float a2;
-    float b2;
-    float c2;
-
+	float a1;
+	float b1;
+	float c1;
+	float a2;
+	float b2;
+	float c2;
+	
     fx = a[0];
-    fy = a[4];
-    cx = a[2];
-    cy = a[5];
+  	fy = a[4];
+  	cx = a[2];
+  	cy = a[5];
 
-    a1 = inv_r[0] - dist.x * inv_r[6];
-    b1 = inv_r[1] - dist.x * inv_r[7];
-    c1 = dist.x * inv_r[8] - inv_r[2];
-    a2 = inv_r[3] - dist.y * inv_r[6];
-    b2 = inv_r[4] - dist.y * inv_r[7];
-    c2 = dist.y * inv_r[8] - inv_r[5];
+	a1 = inv_r[0] - dist.x * inv_r[6];
+	b1 = inv_r[1] - dist.x * inv_r[7];
+	c1 = dist.x * inv_r[8] - inv_r[2];
+	a2 = inv_r[3] - dist.y * inv_r[6];
+	b2 = inv_r[4] - dist.y * inv_r[7];
+	c2 = dist.y * inv_r[8] - inv_r[5];
 
 
-    point = Function( a1, b1, c1, a2, b2, c2 );
-
-    /*get pixel point*/
+	point = Function( a1, b1, c1, a2, b2, c2 );
+	
+	/*get pixel point*/
     imgPoints.x = (cx + point.x * fx - params.x) / params.x_zoom;
     imgPoints.y = (cy + point.y * fy - params.y) / params.y_zoom;
 
@@ -1681,57 +1802,56 @@ vec2 Function2(vec2 dist, const float *a, undistortParams params, double *inv_r)
 
 
 vec2 ProjectPoints3(const vec3 obj_points, const float *r_vec,
-                    const float *t_vec)
-{
-    vec2 imgPoints;
-    double X, Y, Z, x, y, z;
+                    const float *t_vec) {
+  vec2 imgPoints;
+  double X, Y, Z, x, y, z;
 
-    X = obj_points.x;
-    Y = obj_points.y;
-    Z = obj_points.z;
-    x = r_vec[0] * X + r_vec[1] * Y + r_vec[2] * Z + t_vec[0];
-    y = r_vec[3] * X + r_vec[4] * Y + r_vec[5] * Z + t_vec[1];
-    z = r_vec[6] * X + r_vec[7] * Y + r_vec[8] * Z + t_vec[2];
+  X = obj_points.x;
+  Y = obj_points.y;
+  Z = obj_points.z;
+  x = r_vec[0] * X + r_vec[1] * Y + r_vec[2] * Z + t_vec[0];
+  y = r_vec[3] * X + r_vec[4] * Y + r_vec[5] * Z + t_vec[1];
+  z = r_vec[6] * X + r_vec[7] * Y + r_vec[8] * Z + t_vec[2];
 
-    z = z ? 1 / z : 1;
-    imgPoints.x = x * z;
-    imgPoints.y = y * z;
+  z = z ? 1 / z : 1;
+  imgPoints.x = x * z;
+  imgPoints.y = y * z;
 
-    return imgPoints;
+  return imgPoints;
 }
 
 
 void FindRearCurve(float wheel_angle, undistortParams params, float *camera, float *r_vec, float *t_vec, double *inv_r, int width, int height)
 {
-    float wheel_base = 4675 / 20.0;
-    float rear_wheel = 1375 / 20.0;
+    float wheel_base = 4675/20.0;
+    float rear_wheel = 1375/20.0;
     float ex_r, in_r, ex_r1, in_r1;
-    float tmpx, tmpy;
+   	float tmpx, tmpy;
     float angle;
     int i, k;
     float j;
-    vec3 pw;
-    vec2 len, point;
-    float line_width, half_line_width, other_half_line_width;
+	vec3 pw;
+	vec2 len, point;
+	float line_width, half_line_width, other_half_line_width;
     double ex_r1_in, ex_r1_out, in_r1_in, in_r1_out;
-    double base_angle[3][4], delta_angle[3][4], radius[4];
-    float fp = 1.0 / 64;
-    vec3 world_points[10][LENGTH * 2];
-    float startx, length;
-    float offset_y;
-    int idx;
-    int gap[3] = {3, 4, 5};
-    float distance[4] = {0, 500 / 20.0, 1500 / 20.0, 4000 / 20.0 };
-    float car_width = 2556 / 20.0;
-    float scale;
+	double base_angle[3][4], delta_angle[3][4], radius[4];
+	float fp = 1.0 / 64;
+	vec3 world_points[10][LENGTH * 2];
+	float startx, length; 
+	float offset_y;
+	int idx;
+	int gap[3] = {3, 4, 5};
+	float distance[4] = {0, 500/20.0, 1500/20.0, 4000/20.0 };
+	float car_width = 2556/20.0;
+	float scale;
 
-    line_width = 3;
-    half_line_width = line_width / 2;
-    other_half_line_width = line_width - half_line_width;
-    offset_y = 0;
+	line_width = 3;
+	half_line_width = line_width / 2;
+	other_half_line_width = line_width - half_line_width;
+	offset_y = 0;
 
-    startx = -car_width / 2 + 70;
-    length = car_width;
+	startx = -car_width/2 + 70;
+	length = car_width;
 
     if(wheel_angle >= 0 && wheel_angle < 0.05)
     {
@@ -1742,195 +1862,339 @@ void FindRearCurve(float wheel_angle, undistortParams params, float *camera, flo
         wheel_angle = -0.05;
     }
 
-    /*convert to rad*/
+   	/*convert to rad*/
     angle = (90 - wheel_angle) * RADIAN;
 
     ex_r = fabs((float)wheel_base * tan(angle)) + car_width / 2;
     in_r = ex_r - car_width;
 
-    in_r1 = sqrt(in_r * in_r + rear_wheel * rear_wheel);
-    ex_r1 = sqrt(ex_r * ex_r + rear_wheel * rear_wheel);
+ 	in_r1 = sqrt(in_r * in_r + rear_wheel * rear_wheel);
+	ex_r1 = sqrt(ex_r * ex_r + rear_wheel * rear_wheel);
+	
+
+	in_r1_in = in_r1 - half_line_width;
+	in_r1_out = in_r1 + other_half_line_width;
+	ex_r1_in = ex_r1 - half_line_width;
+	ex_r1_out = ex_r1 + other_half_line_width;
+
+	radius[0] = in_r1_in;
+	radius[1] = in_r1_out;
+	radius[2] = ex_r1_in;
+	radius[3] = ex_r1_out;
+	
+
+	scale = (1.0 - 0.2* fabs(wheel_angle)/MAX_WHEEL_ANGLE);
 
 
-    in_r1_in = in_r1 - half_line_width;
-    in_r1_out = in_r1 + other_half_line_width;
-    ex_r1_in = ex_r1 - half_line_width;
-    ex_r1_out = ex_r1 + other_half_line_width;
+	for(idx=0; idx<3; ++idx)
+	{
+		for(k=0; k<4; ++k)
+		{
+			if(k<2)
+			{
+				base_angle[idx][k] = asin((rear_wheel + distance[idx] * scale) / radius[k]);
 
-    radius[0] = in_r1_in;
-    radius[1] = in_r1_out;
-    radius[2] = ex_r1_in;
-    radius[3] = ex_r1_out;
+				if(radius[k] > rear_wheel + distance[idx+1] * scale)
+				{
+					delta_angle[idx][k] = asin((rear_wheel + distance[idx+1] * scale) / radius[k]) - base_angle[idx][k];
+				}
+				else
+				{
+					delta_angle[idx][k] = PI / 2 - base_angle[idx][k];
+				}
+			}
+			else
+			{
+				base_angle[idx][k] = asin((rear_wheel + distance[idx]) / radius[k]);
 
+				if(radius[k] > rear_wheel + distance[idx+1])
+				{
+					delta_angle[idx][k] = asin((rear_wheel + distance[idx+1]) / radius[k]) - base_angle[idx][k];
+				}
+				else
+				{
+					delta_angle[idx][k] = PI / 2 - base_angle[idx][k];
+				}
+			}
+		}
+	}
 
-    scale = (1.0 - 0.2 * fabs(wheel_angle) / MAX_WHEEL_ANGLE);
+	if(wheel_angle < 0)
+	{
+		for(idx=0; idx<3; ++idx)
+		{
+			for (j = 0, k=0; j <= 1; j += fp, ++k)
+			{
+				for(i=0; i<2; ++i)
+				{
+					tmpx = car_width - ex_r + radius[i*2+0] * cos(base_angle[idx][i*2+0] + delta_angle[idx][i*2+0] * j); 
+					tmpy = radius[i*2+0] * sin(base_angle[idx][i*2+0] + delta_angle[idx][i*2+0] * j) - rear_wheel;
 
-
-    for(idx = 0; idx < 3; ++idx)
-    {
-        for(k = 0; k < 4; ++k)
-        {
-            if(k < 2)
-            {
-                base_angle[idx][k] = asin((rear_wheel + distance[idx] * scale) / radius[k]);
-
-                if(radius[k] > rear_wheel + distance[idx + 1] * scale)
-                {
-                    delta_angle[idx][k] = asin((rear_wheel + distance[idx + 1] * scale) / radius[k]) - base_angle[idx][k];
-                }
-                else
-                {
-                    delta_angle[idx][k] = PI / 2 - base_angle[idx][k];
-                }
-            }
-            else
-            {
-                base_angle[idx][k] = asin((rear_wheel + distance[idx]) / radius[k]);
-
-                if(radius[k] > rear_wheel + distance[idx + 1])
-                {
-                    delta_angle[idx][k] = asin((rear_wheel + distance[idx + 1]) / radius[k]) - base_angle[idx][k];
-                }
-                else
-                {
-                    delta_angle[idx][k] = PI / 2 - base_angle[idx][k];
-                }
-            }
-        }
-    }
-
-    if(wheel_angle < 0)
-    {
-        for(idx = 0; idx < 3; ++idx)
-        {
-            for (j = 0, k = 0; j <= 1; j += fp, ++k)
-            {
-                for(i = 0; i < 2; ++i)
-                {
-                    tmpx = car_width - ex_r + radius[i * 2 + 0] * cos(base_angle[idx][i * 2 + 0] + delta_angle[idx][i * 2 + 0] * j);
-                    tmpy = radius[i * 2 + 0] * sin(base_angle[idx][i * 2 + 0] + delta_angle[idx][i * 2 + 0] * j) - rear_wheel;
-
-                    world_points[idx * 2 + i][k * 2 + 0] = Vec3(tmpx, tmpy + offset_y, 0.0);
+					world_points[idx*2+i][k*2+0] = Vec3(tmpx, tmpy+offset_y,0.0);
 
 
-                    tmpx = car_width - ex_r + radius[i * 2 + 1] * cos(base_angle[idx][i * 2 + 1] + delta_angle[idx][i * 2 + 1] * j);
-                    tmpy = radius[i * 2 + 1] * sin(base_angle[idx][i * 2 + 1] + delta_angle[idx][i * 2 + 1] * j) - rear_wheel;
+					tmpx = car_width - ex_r + radius[i*2+1] * cos(base_angle[idx][i*2+1] + delta_angle[idx][i*2+1] * j); 
+					tmpy = radius[i*2+1] * sin(base_angle[idx][i*2+1] + delta_angle[idx][i*2+1] * j) - rear_wheel;
 
-                    world_points[idx * 2 + i][k * 2 + 1] = Vec3(tmpx, tmpy + offset_y, 0.0);
-                }
-            }
-        }
+					world_points[idx*2+i][k*2+1] = Vec3(tmpx, tmpy+offset_y,0.0);
+				}
+			}
+		}
 
-        for(idx = 0; idx < 3; ++idx)
-        {
-            tmpx = car_width - ex_r + radius[1] * cos(base_angle[idx][1] + delta_angle[idx][1] * 1.0);
-            tmpy = radius[1] * sin(base_angle[idx][1] + delta_angle[idx][1] * 1.0) - rear_wheel;
+		for(idx=0; idx<3; ++idx)
+		{
+			tmpx = car_width - ex_r + radius[1] * cos(base_angle[idx][1] + delta_angle[idx][1] * 1.0); 
+			tmpy = radius[1] * sin(base_angle[idx][1] + delta_angle[idx][1] * 1.0) - rear_wheel;
 
-            world_points[6][idx * 4 + 0] = Vec3(tmpx, tmpy + offset_y, 0.0);
+			world_points[6][idx*4+0] = Vec3(tmpx, tmpy+offset_y,0.0);
 
-            tmpx = car_width - ex_r + radius[1] * cos(base_angle[idx][1] + delta_angle[idx][1] * (1.0 - gap[idx] * fp));
-            tmpy = radius[1] * sin(base_angle[idx][1] + delta_angle[idx][1] * (1.0 - gap[idx] * fp)) - rear_wheel;
+			tmpx = car_width - ex_r + radius[1] * cos(base_angle[idx][1] + delta_angle[idx][1] * (1.0 - gap[idx] * fp)); 
+			tmpy = radius[1] * sin(base_angle[idx][1] + delta_angle[idx][1] * (1.0 - gap[idx] * fp)) - rear_wheel;
 
-            world_points[6][idx * 4 + 1] = Vec3(tmpx, tmpy + offset_y, 0.0);
-
-
-            tmpx = car_width - ex_r + radius[2] * cos(base_angle[idx][2] + delta_angle[idx][2] * 1.0);
-            tmpy = radius[2] * sin(base_angle[idx][2] + delta_angle[idx][2] * 1.0) - rear_wheel;
-
-            world_points[6][idx * 4 + 2] = Vec3(tmpx, tmpy + offset_y, 0.0);
-
-            tmpx = car_width - ex_r + radius[2] * cos(base_angle[idx][2] + delta_angle[idx][2] * (1.0 - gap[idx] * fp));
-            tmpy = radius[2] * sin(base_angle[idx][2] + delta_angle[idx][2] * (1.0 - gap[idx] * fp)) - rear_wheel;
-
-            world_points[6][idx * 4 + 3] = Vec3(tmpx, tmpy + offset_y, 0.0);
-        }
+			world_points[6][idx*4+1] = Vec3(tmpx, tmpy+offset_y,0.0);
 
 
-    }
-    else
-    {
-        for(idx = 0; idx < 3; ++idx)
-        {
-            for (j = 0, k = 0; j <= 1; j += fp, ++k)
-            {
-                for(i = 0; i < 2; ++i)
-                {
-                    tmpx = car_width + in_r - radius[i * 2 + 0] * cos(base_angle[idx][i * 2 + 0] + delta_angle[idx][i * 2 + 0] * j);
-                    tmpy = radius[i * 2 + 0] * sin(base_angle[idx][i * 2 + 0] + delta_angle[idx][i * 2 + 0] * j) - rear_wheel;
+			tmpx = car_width - ex_r + radius[2] * cos(base_angle[idx][2] + delta_angle[idx][2] * 1.0); 
+			tmpy = radius[2] * sin(base_angle[idx][2] + delta_angle[idx][2] * 1.0) - rear_wheel;
 
-                    world_points[idx * 2 + i][k * 2 + 0] = Vec3(tmpx, tmpy + offset_y, 0.0);
+			world_points[6][idx*4+2] = Vec3(tmpx, tmpy+offset_y,0.0);
 
-                    tmpx = car_width + in_r - radius[i * 2 + 1] * cos(base_angle[idx][i * 2 + 1] + delta_angle[idx][i * 2 + 1] * j);
-                    tmpy = radius[i * 2 + 1] * sin(base_angle[idx][i * 2 + 1] + delta_angle[idx][i * 2 + 1] * j) - rear_wheel;
+			tmpx = car_width - ex_r + radius[2] * cos(base_angle[idx][2] + delta_angle[idx][2] * (1.0 - gap[idx] * fp)); 
+			tmpy = radius[2] * sin(base_angle[idx][2] + delta_angle[idx][2] * (1.0 - gap[idx] * fp)) - rear_wheel;
 
-                    world_points[idx * 2 + i][k * 2 + 1] = Vec3(tmpx, tmpy + offset_y, 0.0);
-                }
-            }
-        }
-
-        for(idx = 0; idx < 3; ++idx)
-        {
-            tmpx = car_width + in_r - radius[1] * cos(base_angle[idx][1] + delta_angle[idx][1] * 1.0);
-            tmpy = radius[1] * sin(base_angle[idx][1] + delta_angle[idx][1] * 1.0) - rear_wheel;
-
-            world_points[6][idx * 4 + 0] = Vec3(tmpx, tmpy + offset_y, 0.0);
-
-            tmpx = car_width + in_r - radius[1] * cos(base_angle[idx][1] + delta_angle[idx][1] * (1.0 - gap[idx] * fp));
-            tmpy = radius[1] * sin(base_angle[idx][1] + delta_angle[idx][1] * (1.0 - gap[idx] * fp)) - rear_wheel;
-
-            world_points[6][idx * 4 + 1] = Vec3(tmpx, tmpy + offset_y, 0.0);
+			world_points[6][idx*4+3] = Vec3(tmpx, tmpy+offset_y,0.0);
+		}
 
 
-            tmpx = car_width + in_r - radius[2] * cos(base_angle[idx][2] + delta_angle[idx][2] * 1.0);
-            tmpy = radius[2] * sin(base_angle[idx][2] + delta_angle[idx][2] * 1.0) - rear_wheel;
+	}
+	else
+	{
+		for(idx=0; idx<3; ++idx)
+		{
+			for (j = 0, k=0; j <= 1; j += fp, ++k)
+			{
+				for(i=0; i<2; ++i)
+				{
+					tmpx = car_width + in_r - radius[i*2+0] * cos(base_angle[idx][i*2+0] + delta_angle[idx][i*2+0] * j); 
+					tmpy = radius[i*2+0] * sin(base_angle[idx][i*2+0] + delta_angle[idx][i*2+0] * j) - rear_wheel;
 
-            world_points[6][idx * 4 + 2] = Vec3(tmpx, tmpy + offset_y, 0.0);
+					world_points[idx*2+i][k*2+0] = Vec3(tmpx, tmpy+offset_y,0.0);
 
-            tmpx = car_width + in_r - radius[2] * cos(base_angle[idx][2] + delta_angle[idx][2] * (1.0 - gap[idx] * fp));
-            tmpy = radius[2] * sin(base_angle[idx][2] + delta_angle[idx][2] * (1.0 - gap[idx] * fp)) - rear_wheel;
+					tmpx = car_width + in_r - radius[i*2+1] * cos(base_angle[idx][i*2+1] + delta_angle[idx][i*2+1] * j); 
+					tmpy = radius[i*2+1] * sin(base_angle[idx][i*2+1] + delta_angle[idx][i*2+1] * j) - rear_wheel;
 
-            world_points[6][idx * 4 + 3] = Vec3(tmpx, tmpy + offset_y, 0.0);
-        }
-    }
+					world_points[idx*2+i][k*2+1] = Vec3(tmpx, tmpy+offset_y,0.0);
+				}
+			}
+		}
 
-    for (j = 0, k = 0; j <= 1; j += fp)
-    {
+		for(idx=0; idx<3; ++idx)
+		{
+			tmpx = car_width + in_r - radius[1] * cos(base_angle[idx][1] + delta_angle[idx][1] * 1.0); 
+			tmpy = radius[1] * sin(base_angle[idx][1] + delta_angle[idx][1] * 1.0) - rear_wheel;
+
+			world_points[6][idx*4+0] = Vec3(tmpx, tmpy+offset_y,0.0);
+
+			tmpx = car_width + in_r - radius[1] * cos(base_angle[idx][1] + delta_angle[idx][1] * (1.0 - gap[idx] * fp)); 
+			tmpy = radius[1] * sin(base_angle[idx][1] + delta_angle[idx][1] * (1.0 - gap[idx] * fp)) - rear_wheel;
+
+			world_points[6][idx*4+1] = Vec3(tmpx, tmpy+offset_y,0.0);
+
+
+			tmpx = car_width + in_r - radius[2] * cos(base_angle[idx][2] + delta_angle[idx][2] * 1.0); 
+			tmpy = radius[2] * sin(base_angle[idx][2] + delta_angle[idx][2] * 1.0) - rear_wheel;
+
+			world_points[6][idx*4+2] = Vec3(tmpx, tmpy+offset_y,0.0);
+
+			tmpx = car_width + in_r - radius[2] * cos(base_angle[idx][2] + delta_angle[idx][2] * (1.0 - gap[idx] * fp)); 
+			tmpy = radius[2] * sin(base_angle[idx][2] + delta_angle[idx][2] * (1.0 - gap[idx] * fp)) - rear_wheel;
+
+			world_points[6][idx*4+3] = Vec3(tmpx, tmpy+offset_y,0.0);
+		}
+	}
+
+	for (j = 0, k=0; j <= 1; j += fp)
+	{
+		tmpx = startx + (length) * j;
+        tmpy = 0-5; 
+
+        world_points[7][k*2+0] = Vec3(tmpx, tmpy, 0.0);
+
         tmpx = startx + (length) * j;
-        tmpy = 0 - 5;
+        tmpy = 0+5; 
 
-        world_points[7][k * 2 + 0] = Vec3(tmpx, tmpy, 0.0);
-
-        tmpx = startx + (length) * j;
-        tmpy = 0 + 5;
-
-        world_points[7][k * 2 + 1] = Vec3(tmpx, tmpy, 0.0);
+        world_points[7][k*2+1] = Vec3(tmpx, tmpy, 0.0);
         k++;
-    }
+	}
+	
+	for(k=0; k<8; ++k)
+	{
+		for(i = 0; i < LENGTH * 2; ++i) 
+		{
+			pw = world_points[k][i];		/*get world point*/
+	
+			len = ProjectPoints3( pw, r_vec, t_vec ); /*get img point*/
 
-    for(k = 0; k < 8; ++k)
-    {
-        for(i = 0; i < LENGTH * 2; ++i)
-        {
-            pw = world_points[k][i];		/*get world point*/
+			point = Function2(len, camera, params, inv_r);	/*get pixel point*/
 
-            len = ProjectPoints3( pw, r_vec, t_vec ); /*get img point*/
-
-            point = Function2(len, camera, params, inv_r);	/*get pixel point*/
-
-            /*caculate vertex point*/
-            vertices_rear_traj_line_point[k][i].x = -(1.0 - 2 * point.x / width);
-            vertices_rear_traj_line_point[k][i].y = -(1.0 - 2 * point.y / height);
-            vertices_rear_traj_line_point[k][i].z = 0.0;
-        }
-    }
+			/*caculate vertex point*/
+			vertices_rear_traj_line_point[k][i].x = -(1.0 - 2 * point.x / width);
+			vertices_rear_traj_line_point[k][i].y = -(1.0 - 2 * point.y / height);
+			vertices_rear_traj_line_point[k][i].z = 0.0;
+		}
+	}
 }
 
 
+
+
+
+void FindFrontCurve(float wheel_angle, undistortParams params, float *camera, float *r_vec, float *t_vec, double *inv_r, int width, int height)
+{
+    float wheel_base = 4675/20.0;
+    float rear_wheel = 1375/20.0;
+    float ex_r, in_r, ex_r1, in_r1;
+   	float tmpx, tmpy;
+    float angle;
+    int i, k;
+    float j;
+	vec3 pw;
+	vec2 len, point;
+	float line_width, half_line_width, other_half_line_width;
+    double ex_r1_in, ex_r1_out, in_r1_in, in_r1_out;
+	double base_angle[4], delta_angle[4], radius[4];
+	float fp = 1.0 / 64;
+	vec3 world_points[10][LENGTH * 2];
+	float startx, length; 
+	float offset_y;
+	int idx;
+	int gap[3] = {3, 4, 5};
+	float distance[4] = {0, 500/20.0, 1500/20.0, 4000/20.0 };
+	float car_width = 2556/20.0;
+	float scale;
+
+	line_width = 3;
+	half_line_width = line_width / 2;
+	other_half_line_width = line_width - half_line_width;
+	offset_y = 0;
+
+	startx = -car_width/2 + 70;
+	length = car_width;
+
+    if(wheel_angle >= 0 && wheel_angle < 0.05)
+    {
+        wheel_angle = 0.05;
+    }
+    else if(wheel_angle < 0 && wheel_angle > -0.05)
+    {
+        wheel_angle = -0.05;
+    }
+
+   	/*convert to rad*/
+    angle = (90 - wheel_angle) * RADIAN;
+
+    ex_r = fabs((float)wheel_base * tan(angle)) + car_width / 2;
+    in_r = ex_r - car_width;
+
+ 	in_r1 = sqrt(in_r * in_r + rear_wheel * rear_wheel);
+	ex_r1 = sqrt(ex_r * ex_r + rear_wheel * rear_wheel);
+	
+	in_r1 = sqrt(in_r * in_r + (wheel_base + rear_wheel) * (wheel_base + rear_wheel));
+	ex_r1 = sqrt(ex_r * ex_r + (wheel_base + rear_wheel) * (wheel_base + rear_wheel));
+
+	in_r1_in = in_r1 - half_line_width;
+	in_r1_out = in_r1 + other_half_line_width;
+	ex_r1_in = ex_r1 - half_line_width;
+	ex_r1_out = ex_r1 + other_half_line_width;
+
+	radius[0] = in_r1_in;
+	radius[1] = in_r1_out;
+	radius[2] = ex_r1_in;
+	radius[3] = ex_r1_out;
+	
+
+	scale = (1.0 - 0.2* fabs(wheel_angle)/MAX_WHEEL_ANGLE);
+
+	for(k=0; k<4; k++)
+	{
+		base_angle[k] = asin((wheel_base + rear_wheel) / radius[k]);
+
+		if(radius[k] > (wheel_base + rear_wheel) + distance[3])
+		{
+			delta_angle[k] = asin(((wheel_base + rear_wheel) + distance[3]) / radius[k]) - base_angle[k];
+		}
+		else
+		{
+			delta_angle[k] = PI / 2 - base_angle[k];
+		}
+	}
+
+	if(wheel_angle < 0)
+	{
+		for (j = 0, k=0; j <= 1; j += fp)
+		{
+			for(i=0; i<2; i++)
+			{
+				tmpx = car_width - ex_r + radius[i*2+0] * cos(base_angle[i*2+0] + delta_angle[i*2+0] * j);// - car_width / 2; 
+				tmpy = 100 - (radius[i*2+0] * sin(base_angle[i*2+0] + delta_angle[i*2+0] * j) - (wheel_base + rear_wheel));
+
+				world_points[i][k*2+0] = Vec3(tmpx, tmpy, 0.0);
+
+
+				tmpx = car_width - ex_r + radius[i*2+1] * cos(base_angle[i*2+1] + delta_angle[i*2+1] * j);// - car_width / 2; 
+				tmpy = 100 - (radius[i*2+1] * sin(base_angle[i*2+1] + delta_angle[i*2+1] * j) - (wheel_base + rear_wheel));
+
+				world_points[i][k*2+1] = Vec3(tmpx, tmpy, 0.0);
+			}
+			
+			k++;	
+		}
+	}
+	else
+	{
+		for (j = 0, k=0; j <= 1; j += fp)
+		{
+			for(i=0; i<2; i++)
+			{
+				tmpx = car_width + in_r - radius[i*2+0] * cos(base_angle[i*2+0] + delta_angle[i*2+0] * j); 
+				tmpy = 100 - (radius[i*2+0] * sin(base_angle[i*2+0] + delta_angle[i*2+0] * j) - (wheel_base + rear_wheel));
+
+				world_points[i][k*2+0] = Vec3(tmpx, tmpy, 0.0);
+
+				tmpx = car_width + in_r - radius[i*2+1] * cos(base_angle[i*2+1] + delta_angle[i*2+1] * j); 
+				tmpy = 100 - (radius[i*2+1] * sin(base_angle[i*2+1] + delta_angle[i*2+1] * j) - (wheel_base + rear_wheel));
+
+				world_points[i][k*2+1] = Vec3(tmpx, tmpy, 0.0);
+			}
+
+			k++;
+				
+		}
+	}
+	
+	for(k=0; k<2; ++k)
+	{
+		for(i = 0; i < LENGTH * 2; ++i) 
+		{
+			pw = world_points[k][i];		/*get world point*/
+	
+			len = ProjectPoints3( pw, r_vec, t_vec ); /*get img point*/
+
+			point = Function2(len, camera, params, inv_r);	/*get pixel point*/
+
+			/*caculate vertex point*/
+			vertices_front_traj_line_point[k][i].x = -(1.0 - 2 * point.x / width);
+			vertices_front_traj_line_point[k][i].y = (1.0 - 2 * point.y / height);
+			vertices_front_traj_line_point[k][i].z = 0.0;
+		}
+	}
+}
+
 void DrawFbUndistortView(int view_mode, float steeringWheelAngle)
 {
-    float alpha, beta, gamma;
-    double R[9], inv_r[9];
-    undistortParams resizer;
+	float alpha, beta, gamma;
+	double R[9], inv_r[9];
+	undistortParams resizer;
 
     int which_camera;
     int cnt;
@@ -1958,29 +2222,29 @@ void DrawFbUndistortView(int view_mode, float steeringWheelAngle)
 
     switch(view_mode)
     {
-    case VIEW_FRONT_LEFT:
-    case VIEW_FRONT_RIGHT:
-        which_camera = 0;
-        cnt = ver_count_front;
-        verAddr = (float *)ver_coord_point_front;
-        texAddr = (float *)tex_coord_point_front;
-        break;
-    case VIEW_BACK_LEFT:
-    case VIEW_BACK_RIGHT:
-        which_camera = 1;
-        cnt = ver_count_back;
-        verAddr = (float *)ver_coord_point_back;
-        texAddr = (float *)tex_coord_point_back;
-        break;
-    default:
-        which_camera = 0;
-        cnt = ver_count_front;
-        verAddr = (float *)ver_coord_point_front;
-        texAddr = (float *)tex_coord_point_front;
-        break;
+	    case VIEW_FRONT_LEFT:
+	    case VIEW_FRONT_RIGHT:
+	        which_camera = 0;
+	        cnt = ver_count_front;
+	        verAddr = (float *)ver_coord_point_front;
+	        texAddr = (float *)tex_coord_point_front;
+	        break;
+	    case VIEW_BACK_LEFT:
+	    case VIEW_BACK_RIGHT:
+	        which_camera = 1;
+	        cnt = ver_count_back;
+	        verAddr = (float *)ver_coord_point_back;
+	        texAddr = (float *)tex_coord_point_back;
+	        break;
+	    default:
+	        which_camera = 0;
+	        cnt = ver_count_front;
+	        verAddr = (float *)ver_coord_point_front;
+	        texAddr = (float *)tex_coord_point_front;
+	        break;
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, rotate_fb_view_frame_buffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, rotate_fb_view_frame_buffer);
 
     esMatrixLoadIdentity ( &ortho_matrix );
 
@@ -1992,12 +2256,12 @@ void DrawFbUndistortView(int view_mode, float steeringWheelAngle)
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     SetMat4(h_program_handle[4], "mvp", ortho_matrix);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, verAddr);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texAddr);
+ 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texAddr);
 
 
     glActiveTexture(GL_TEXTURE0);
@@ -2012,99 +2276,129 @@ void DrawFbUndistortView(int view_mode, float steeringWheelAngle)
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, cnt);
 
-    if(view_mode == VIEW_BACK_LEFT || view_mode == VIEW_BACK_RIGHT)
-    {
-        resizer.x = 0;
-        resizer.y = -100;
-        resizer.x_zoom = 1.0 * 1280 / g_fb_single_view.width;
-        resizer.y_zoom = 1.0 * 620 / g_fb_single_view.height;
+	if(view_mode == VIEW_FRONT_LEFT || view_mode == VIEW_FRONT_RIGHT)
+	{
+	    resizer.x = front_resizer.x;
+	    resizer.y = front_resizer.y;
+	    resizer.x_zoom = 1.0 * front_resizer.width / g_fb_single_view.width;
+	    resizer.y_zoom = 1.0 * front_resizer.height / g_fb_single_view.height;
 
-        RotationMatrixToEulerAngle(rear_cam_params.mr, &alpha, &beta, &gamma);
+		RotationMatrixToEulerAngle(front_cam_params.mr, &alpha, &beta, &gamma);
+	
+		alpha = 0 * RADIAN;
+	
+		R[0] = cos(beta) * cos(gamma);
+		R[1] = cos(beta) * sin(gamma);
+		R[2] = -sin(beta);
+		R[3] = sin(alpha) * sin(beta) * cos(gamma) - cos(alpha) * sin(gamma);
+		R[4] = sin(alpha) * sin(beta) * sin(gamma) + cos(alpha) * cos(gamma);
+		R[5] = sin(alpha) * cos(beta);
+		R[6] = cos(alpha) * sin(beta) * cos(gamma) + sin(alpha) * sin(gamma);
+		R[7] = cos(alpha) * sin(beta) * sin(gamma) - sin(alpha) * cos(gamma);
+		R[8] = cos(alpha) * cos(beta);
+	
+		InvertMatrix(R, inv_r);
 
-        alpha = 0 * RADIAN;
+		//FindFrontCurve(steeringWheelAngle, resizer, front_cam_params.mi, front_cam_params.mr, front_cam_params.mt, inv_r, g_fb_single_view.width, g_fb_single_view.height);
 
-        R[0] = cos(beta) * cos(gamma);
-        R[1] = cos(beta) * sin(gamma);
-        R[2] = -sin(beta);
-        R[3] = sin(alpha) * sin(beta) * cos(gamma) - cos(alpha) * sin(gamma);
-        R[4] = sin(alpha) * sin(beta) * sin(gamma) + cos(alpha) * cos(gamma);
-        R[5] = sin(alpha) * cos(beta);
-        R[6] = cos(alpha) * sin(beta) * cos(gamma) + sin(alpha) * sin(gamma);
-        R[7] = cos(alpha) * sin(beta) * sin(gamma) - sin(alpha) * cos(gamma);
-        R[8] = cos(alpha) * cos(beta);
+		//DrawUndistortFrontCurve(ortho_matrix);
 
-        InvertMatrix(R, inv_r);
+	}
 
-        FindRearCurve(steeringWheelAngle, resizer, rear_cam_params.mi, rear_cam_params.mr, rear_cam_params.mt, inv_r, g_fb_single_view.width, g_fb_single_view.height);
+	
+	if(view_mode == VIEW_BACK_LEFT || view_mode == VIEW_BACK_RIGHT)
+	{
+		resizer.x = rear_resizer.x;
+	    resizer.y = rear_resizer.y;
+	    resizer.x_zoom = 1.0 * rear_resizer.width / g_fb_single_view.width;
+	    resizer.y_zoom = 1.0 * rear_resizer.height / g_fb_single_view.height;
 
-        DrawUndistortBackCurve(ortho_matrix);
-    }
+	    RotationMatrixToEulerAngle(rear_cam_params.mr, &alpha, &beta, &gamma);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	    alpha = 0 * RADIAN;
+
+	    R[0] = cos(beta) * cos(gamma);
+	    R[1] = cos(beta) * sin(gamma);
+	    R[2] = -sin(beta);
+	    R[3] = sin(alpha) * sin(beta) * cos(gamma) - cos(alpha) * sin(gamma);
+	    R[4] = sin(alpha) * sin(beta) * sin(gamma) + cos(alpha) * cos(gamma);
+	    R[5] = sin(alpha) * cos(beta);
+	    R[6] = cos(alpha) * sin(beta) * cos(gamma) + sin(alpha) * sin(gamma);
+	    R[7] = cos(alpha) * sin(beta) * sin(gamma) - sin(alpha) * cos(gamma);
+	    R[8] = cos(alpha) * cos(beta);
+
+	    InvertMatrix(R, inv_r);	
+
+	    FindRearCurve(steeringWheelAngle, resizer, rear_cam_params.mi, rear_cam_params.mr, rear_cam_params.mt, inv_r, g_fb_single_view.width, g_fb_single_view.height);
+
+		DrawUndistortBackCurve(ortho_matrix);
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 
 int GenerateTriangle(vec2 *triagnle, int width, int height)
 {
-    float p = 64.0;
-    float i;
-    float j;
-    float fp;
-    unsigned char directionFlag;
+	float p = 64.0;
+	float i;
+	float j;
+	float fp;
+	unsigned char directionFlag;
     vec2 point;
-    int count;
+	int count;
+	
+	fp = 1.0 / p;
+	directionFlag = 0;
+	count = 0;
 
-    fp = 1.0 / p;
-    directionFlag = 0;
-    count = 0;
+	for (i = 0; i < 1; i += fp)
+	{
+		switch(directionFlag)
+		{
+		case 0:
+			for (j = 0; j <= 1; j += fp)
+			{
+				point.x = j * width;
+				point.y = i * height;
+					
+				triagnle[count++] = point;
 
-    for (i = 0; i < 1; i += fp)
-    {
-        switch(directionFlag)
-        {
-        case 0:
-            for (j = 0; j <= 1; j += fp)
-            {
-                point.x = j * width;
-                point.y = i * height;
+				point.x = j * width;
+				point.y = (i + fp) * height;
 
-                triagnle[count++] = point;
+				triagnle[count++] = point;
+			}
+			break;
+		case 1:
+			for( j = 1; j >= 0; j -= fp )
+			{
+				point.x = j * width;
+				point.y = i * height;
 
-                point.x = j * width;
-                point.y = (i + fp) * height;
+				triagnle[count++] = point;
 
-                triagnle[count++] = point;
-            }
-            break;
-        case 1:
-            for( j = 1; j >= 0; j -= fp )
-            {
-                point.x = j * width;
-                point.y = i * height;
+				point.x = j * width;
+				point.y = (i + fp) * height;
+	
+				triagnle[count++] = point;
 
-                triagnle[count++] = point;
+			}
+			break;
+		}
+		// change direction!
 
-                point.x = j * width;
-                point.y = (i + fp) * height;
-
-                triagnle[count++] = point;
-
-            }
-            break;
-        }
-        // change direction!
-
-        if( fabs(j - fp - 1) < FLOAT_ZERO )
-        {
-            directionFlag = 1;
-        }
-        else
-        {
-            directionFlag = 0;
-        }
-    }
-
-    return count;
+		if( fabs(j - fp - 1) < FLOAT_ZERO )
+		{
+			directionFlag = 1;
+		}
+		else
+		{
+			directionFlag = 0;
+		}
+	}
+	
+	return count;
 }
 
 
@@ -2117,10 +2411,10 @@ void InitUndistort(int width, int height)
     int k, p;
     p = 64;
 
-    resizer.x = 100;
-    resizer.y = 0;
-    resizer.x_zoom = 1.0 * 1080 / width;
-    resizer.y_zoom = 1.0 * 820 / height;
+    resizer.x = front_resizer.x;
+    resizer.y = front_resizer.y;
+    resizer.x_zoom = 1.0 * front_resizer.width / width;
+    resizer.y_zoom = 1.0 * front_resizer.height / height;
 
     img_coord_point_front = (vec2 *)malloc(sizeof(vec2) * p * (p + 1) * 2);
 
@@ -2152,13 +2446,13 @@ void InitUndistort(int width, int height)
         ver_coord_point_front[k].z = 0;
 
         tex_coord_point_front[k] = Undistort(img_coord_point_front[k].y, img_coord_point_front[k].x,
-                                             front_cam_params.mi, front_cam_params.md, resizer, inv_r);
+                                          front_cam_params.mi, front_cam_params.md, resizer, inv_r);
     }
 
-    resizer.x = 0;
-    resizer.y = -100;
-    resizer.x_zoom = 1.0 * 1280 / width;
-    resizer.y_zoom = 1.0 * 620 / height;
+    resizer.x = rear_resizer.x;
+    resizer.y = rear_resizer.y;
+    resizer.x_zoom = 1.0 * rear_resizer.width / width;
+    resizer.y_zoom = 1.0 * rear_resizer.height / height;
 
 
     img_coord_point_back = (vec2 *)malloc(sizeof(vec2) * p * (p + 1) * 2);
@@ -2191,211 +2485,211 @@ void InitUndistort(int width, int height)
         ver_coord_point_back[k].z = 0;
 
         tex_coord_point_back[k] = Undistort(img_coord_point_back[k].y, img_coord_point_back[k].x,
-                                            rear_cam_params.mi, rear_cam_params.md, resizer, inv_r);
+                                         rear_cam_params.mi, rear_cam_params.md, resizer, inv_r);
     }
-
+    
     FindRearCurve(0.0, resizer, rear_cam_params.mi, rear_cam_params.mr, rear_cam_params.mt, inv_r, width, height);
 
 }
 
 int InitAllViewFBO(GLint width, GLint height)
 {
-    GLenum status;
-    GLint maxRenderbufferSize;
+	GLenum status;
+	GLint maxRenderbufferSize;
 
-    glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &maxRenderbufferSize);
+	glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &maxRenderbufferSize);
+ 
+	// check if GL_MAX_RENDERBUFFER_SIZE is >= texWidth and texHeight
+	if ((maxRenderbufferSize <= width) || (maxRenderbufferSize <= height))
+	{
+		// cannot use carModelFrameBuffer objects as we need to create
+		// a depth buffer as a renderbuffer object
+		printf("Cannot use framebuffer objects!\n");
+		exit(EXIT_FAILURE);
+		return 0;
+	}
+	// generate the framebuffer, renderbuffer names
+	glGenFramebuffers(1, &rotate_all_view_frame_buffer);
+	glGenRenderbuffers(1, &rotate_all_view_depth_render_buffer);
+ 
+	// bind renderbuffer and create a 16-bit depth buffer
+	// width and height of renderbuffer = width and height of
+	// the texture
+	glBindRenderbuffer(GL_RENDERBUFFER, rotate_all_view_depth_render_buffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
+ 
+	// Texture
+	glGenTextures(1, &rotate_all_view_texture);
+	glBindTexture(GL_TEXTURE_2D, rotate_all_view_texture);
 
-    // check if GL_MAX_RENDERBUFFER_SIZE is >= texWidth and texHeight
-    if ((maxRenderbufferSize <= width) || (maxRenderbufferSize <= height))
-    {
-        // cannot use carModelFrameBuffer objects as we need to create
-        // a depth buffer as a renderbuffer object
-        printf("Cannot use framebuffer objects!\n");
-        exit(EXIT_FAILURE);
-        return 0;
-    }
-    // generate the framebuffer, renderbuffer names
-    glGenFramebuffers(1, &rotate_all_view_frame_buffer);
-    glGenRenderbuffers(1, &rotate_all_view_depth_render_buffer);
+	#if 1
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, 
+		//GL_RGB, GL_UNSIGNED_SHORT_5_6_5, NULL);
+	glTexImage2D ( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+ 	#endif
+	// bind the framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, rotate_all_view_frame_buffer);
+	// $)A!n specify texture as color attachment !n
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rotate_all_view_texture, 0);
+ 
+	// specify depth_renderbufer as depth attachment
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rotate_all_view_depth_render_buffer);
+ 
+	// check for framebuffer complete
+	status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE)
+	{
+		printf("Framebuffer object is not complete!\n");
+		exit(EXIT_FAILURE);
+		return 0;
+	}
 
-    // bind renderbuffer and create a 16-bit depth buffer
-    // width and height of renderbuffer = width and height of
-    // the texture
-    glBindRenderbuffer(GL_RENDERBUFFER, rotate_all_view_depth_render_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
+ 	printf("waterMarkFbo init ok %d %d\n", rotate_all_view_frame_buffer, rotate_all_view_texture);
 
-    // Texture
-    glGenTextures(1, &rotate_all_view_texture);
-    glBindTexture(GL_TEXTURE_2D, rotate_all_view_texture);
-
-#if 1
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0,
-    //GL_RGB, GL_UNSIGNED_SHORT_5_6_5, NULL);
-    glTexImage2D ( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-#endif
-    // bind the framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, rotate_all_view_frame_buffer);
-    // $)A!n specify texture as color attachment !n
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rotate_all_view_texture, 0);
-
-    // specify depth_renderbufer as depth attachment
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rotate_all_view_depth_render_buffer);
-
-    // check for framebuffer complete
-    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE)
-    {
-        printf("Framebuffer object is not complete!\n");
-        exit(EXIT_FAILURE);
-        return 0;
-    }
-
-    printf("waterMarkFbo init ok %d %d\n", rotate_all_view_frame_buffer, rotate_all_view_texture);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    return 0;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
+	return 0;
 }
 
 
 int InitFbViewFBO(GLint width, GLint height)
 {
-    GLenum status;
-    GLint maxRenderbufferSize;
+	GLenum status;
+	GLint maxRenderbufferSize;
 
-    glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &maxRenderbufferSize);
+	glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &maxRenderbufferSize);
+ 
+	// check if GL_MAX_RENDERBUFFER_SIZE is >= texWidth and texHeight
+	if ((maxRenderbufferSize <= width) || (maxRenderbufferSize <= height))
+	{
+		// cannot use carModelFrameBuffer objects as we need to create
+		// a depth buffer as a renderbuffer object
+		printf("Cannot use framebuffer objects!\n");
+		exit(EXIT_FAILURE);
+		return 0;
+	}
+	// generate the framebuffer, renderbuffer names
+	glGenFramebuffers(1, &rotate_fb_view_frame_buffer);
+	glGenRenderbuffers(1, &rotate_fb_view_depth_render_buffer);
+ 
+	// bind renderbuffer and create a 16-bit depth buffer
+	// width and height of renderbuffer = width and height of
+	// the texture
+	glBindRenderbuffer(GL_RENDERBUFFER, rotate_fb_view_depth_render_buffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
+ 
+	// Texture
+	glGenTextures(1, &rotate_fb_view_texture);
+	glBindTexture(GL_TEXTURE_2D, rotate_fb_view_texture);
 
-    // check if GL_MAX_RENDERBUFFER_SIZE is >= texWidth and texHeight
-    if ((maxRenderbufferSize <= width) || (maxRenderbufferSize <= height))
-    {
-        // cannot use carModelFrameBuffer objects as we need to create
-        // a depth buffer as a renderbuffer object
-        printf("Cannot use framebuffer objects!\n");
-        exit(EXIT_FAILURE);
-        return 0;
-    }
-    // generate the framebuffer, renderbuffer names
-    glGenFramebuffers(1, &rotate_fb_view_frame_buffer);
-    glGenRenderbuffers(1, &rotate_fb_view_depth_render_buffer);
+	#if 1
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, 
+		//GL_RGB, GL_UNSIGNED_SHORT_5_6_5, NULL);
+	glTexImage2D ( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+ 	#endif
+	// bind the framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, rotate_fb_view_frame_buffer);
+	// $)A!n specify texture as color attachment !n
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rotate_fb_view_texture, 0);
+ 
+	// specify depth_renderbufer as depth attachment
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rotate_fb_view_depth_render_buffer);
+ 
+	// check for framebuffer complete
+	status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE)
+	{
+		printf("Framebuffer object is not complete!\n");
+		exit(EXIT_FAILURE);
+		return 0;
+	}
 
-    // bind renderbuffer and create a 16-bit depth buffer
-    // width and height of renderbuffer = width and height of
-    // the texture
-    glBindRenderbuffer(GL_RENDERBUFFER, rotate_fb_view_depth_render_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
+ 	printf("waterMarkFbo init ok %d %d\n", rotate_fb_view_frame_buffer, rotate_fb_view_texture);
 
-    // Texture
-    glGenTextures(1, &rotate_fb_view_texture);
-    glBindTexture(GL_TEXTURE_2D, rotate_fb_view_texture);
-
-#if 1
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0,
-    //GL_RGB, GL_UNSIGNED_SHORT_5_6_5, NULL);
-    glTexImage2D ( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-#endif
-    // bind the framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, rotate_fb_view_frame_buffer);
-    // $)A!n specify texture as color attachment !n
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rotate_fb_view_texture, 0);
-
-    // specify depth_renderbufer as depth attachment
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rotate_fb_view_depth_render_buffer);
-
-    // check for framebuffer complete
-    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE)
-    {
-        printf("Framebuffer object is not complete!\n");
-        exit(EXIT_FAILURE);
-        return 0;
-    }
-
-    printf("waterMarkFbo init ok %d %d\n", rotate_fb_view_frame_buffer, rotate_fb_view_texture);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    return 0;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
+	return 0;
 }
 
 
 int InitLrViewFBO(GLint width, GLint height)
 {
-    GLenum status;
-    GLint maxRenderbufferSize;
+	GLenum status;
+	GLint maxRenderbufferSize;
 
-    glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &maxRenderbufferSize);
+	glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &maxRenderbufferSize);
+ 
+	// check if GL_MAX_RENDERBUFFER_SIZE is >= texWidth and texHeight
+	if ((maxRenderbufferSize <= width) || (maxRenderbufferSize <= height))
+	{
+		// cannot use carModelFrameBuffer objects as we need to create
+		// a depth buffer as a renderbuffer object
+		printf("Cannot use framebuffer objects!\n");
+		exit(EXIT_FAILURE);
+		return 0;
+	}
+	// generate the framebuffer, renderbuffer names
+	glGenFramebuffers(1, &rotate_lr_view_frame_buffer);
+	glGenRenderbuffers(1, &rotate_lr_view_depth_render_buffer);
+ 
+	// bind renderbuffer and create a 16-bit depth buffer
+	// width and height of renderbuffer = width and height of
+	// the texture
+	glBindRenderbuffer(GL_RENDERBUFFER, rotate_lr_view_depth_render_buffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
+ 
+	// Texture
+	glGenTextures(1, &rotate_lr_view_texture);
+	glBindTexture(GL_TEXTURE_2D, rotate_lr_view_texture);
 
-    // check if GL_MAX_RENDERBUFFER_SIZE is >= texWidth and texHeight
-    if ((maxRenderbufferSize <= width) || (maxRenderbufferSize <= height))
-    {
-        // cannot use carModelFrameBuffer objects as we need to create
-        // a depth buffer as a renderbuffer object
-        printf("Cannot use framebuffer objects!\n");
-        exit(EXIT_FAILURE);
-        return 0;
-    }
-    // generate the framebuffer, renderbuffer names
-    glGenFramebuffers(1, &rotate_lr_view_frame_buffer);
-    glGenRenderbuffers(1, &rotate_lr_view_depth_render_buffer);
+	#if 1
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, 
+		//GL_RGB, GL_UNSIGNED_SHORT_5_6_5, NULL);
+	glTexImage2D ( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+ 	#endif
+	// bind the framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, rotate_lr_view_frame_buffer);
+	// $)A!n specify texture as color attachment !n
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rotate_lr_view_texture, 0);
+ 
+	// specify depth_renderbufer as depth attachment
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rotate_lr_view_depth_render_buffer);
+ 
+	// check for framebuffer complete
+	status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE)
+	{
+		printf("Framebuffer object is not complete!\n");
+		exit(EXIT_FAILURE);
+		return 0;
+	}
 
-    // bind renderbuffer and create a 16-bit depth buffer
-    // width and height of renderbuffer = width and height of
-    // the texture
-    glBindRenderbuffer(GL_RENDERBUFFER, rotate_lr_view_depth_render_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
+ 	printf("waterMarkFbo init ok %d %d\n", rotate_lr_view_frame_buffer, rotate_lr_view_texture);
 
-    // Texture
-    glGenTextures(1, &rotate_lr_view_texture);
-    glBindTexture(GL_TEXTURE_2D, rotate_lr_view_texture);
-
-#if 1
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0,
-    //GL_RGB, GL_UNSIGNED_SHORT_5_6_5, NULL);
-    glTexImage2D ( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-#endif
-    // bind the framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, rotate_lr_view_frame_buffer);
-    // $)A!n specify texture as color attachment !n
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rotate_lr_view_texture, 0);
-
-    // specify depth_renderbufer as depth attachment
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rotate_lr_view_depth_render_buffer);
-
-    // check for framebuffer complete
-    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE)
-    {
-        printf("Framebuffer object is not complete!\n");
-        exit(EXIT_FAILURE);
-        return 0;
-    }
-
-    printf("waterMarkFbo init ok %d %d\n", rotate_lr_view_frame_buffer, rotate_lr_view_texture);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    return 0;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
+	return 0;
 }
 
 
@@ -2418,38 +2712,28 @@ int AvmInit(safImgRect allView, safImgRect singleView)
     g_fb_single_view.y = 0;
     g_fb_single_view.width = 720;
     g_fb_single_view.height = 560;
-    
-    InitShader();
-    
-    InitCamParaData();
-    
 
-    Init2DModel();
-    
+	InitShader();
 
-    InitTextureCoords();
-    
+	InitCamParaData();
 
-    GetLumiaCountPosition();
-    
+	Init2DModel();
 
-    LoadRes(IMAGE_WIDTH, IMAGE_HEIGHT);
-    
+	InitTextureCoords();
 
-    InitVBO();
-    
+	GetLumiaCountPosition();
+	
+	LoadRes(IMAGE_WIDTH, IMAGE_HEIGHT);
 
-    InitUndistort(g_single_view.width, g_single_view.height);
-    
+	InitVBO();
 
-    InitAllViewFBO(g_all_view.width, g_all_view.height);
-    
+	InitUndistort(g_single_view.width, g_single_view.height);
 
-    InitFbViewFBO(g_fb_single_view.width, g_fb_single_view.height);
-    
+	InitAllViewFBO(g_all_view.width, g_all_view.height);
 
-    InitLrViewFBO(g_lr_single_view.width, g_lr_single_view.height);
-    
+	InitFbViewFBO(g_fb_single_view.width, g_fb_single_view.height);
+
+	InitLrViewFBO(g_lr_single_view.width, g_lr_single_view.height);
 
     return 0;
 }
@@ -2460,12 +2744,12 @@ extern void UpdateTexture(unsigned char **src)
     unsigned char *p_src_y, *p_src_u, *p_src_v;
     for(i = 0; i < 5; ++i)
     {
-        if(NULL == src[i])
-        {
-            /*check image address*/
-            continue;
-        }
-
+		if(NULL == src[i])
+		{
+			/*check image address*/
+			continue;
+		}
+		
         p_src_y = src[i];
         p_src_u = p_src_y + IMAGE_WIDTH * IMAGE_HEIGHT;
         p_src_v = p_src_u + IMAGE_WIDTH * IMAGE_HEIGHT / 4;
@@ -2479,7 +2763,7 @@ extern void UpdateTexture(unsigned char **src)
         glBindTexture( GL_TEXTURE_2D, texture_v[i]);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, IMAGE_WIDTH / 2, IMAGE_HEIGHT / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, p_src_v);
 
-        pu8_cam_vir[i] = p_src_y;
+       	pu8_cam_vir[i] = p_src_y;
     }
 
     CaculateColorCoeff2D(src);
@@ -2488,7 +2772,7 @@ extern void UpdateTexture(unsigned char **src)
 
 void RoateView(safImgRect view_port, GLuint rotate_texture)
 {
-    float vertices_view[] =
+	float vertices_view[] =
     {
         -1.0f, -1.0f, 0.0f,  // left-buttom
         1.0f, -1.0f, 0.0f,	// right- buttom
@@ -2499,36 +2783,36 @@ void RoateView(safImgRect view_port, GLuint rotate_texture)
 
     float tex_coord_view[] =
     {
-        0.0f,  1.0f,
-        0.0f,  0.0f,
-        1.0f,  1.0f,
-        1.0f,  0.0f
+		0.0f,  1.0f,  
+		0.0f,  0.0f,  
+		1.0f,  1.0f,  
+		1.0f,  0.0f
     };
+    
+	ESMatrix orthoMatrix;
+	
+	esMatrixLoadIdentity ( &orthoMatrix );	
 
-    ESMatrix orthoMatrix;
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    esMatrixLoadIdentity ( &orthoMatrix );
+	glViewport (view_port.x, view_port.y, view_port.height, view_port.width);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_DEPTH_TEST);
+	
+	glUseProgram(h_program_handle[2]);
 
-    glViewport (view_port.x, view_port.y, view_port.height, view_port.width);
+	SetMat4(h_program_handle[2], "mvp", orthoMatrix);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_DEPTH_TEST);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_view);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, tex_coord_view);
 
-    glUseProgram(h_program_handle[2]);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, rotate_texture);
+	SetInt(h_program_handle[2], "textureImg", 0);
 
-    SetMat4(h_program_handle[2], "mvp", orthoMatrix);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_view);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, tex_coord_view);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, rotate_texture);
-    SetInt(h_program_handle[2], "textureImg", 0);
-
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 
@@ -2537,26 +2821,29 @@ void RunRender(int view_mode, float steeringWheelAngle)
     // Clear the colorbuffer and depth-buffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    Draw2DView();
-    RoateView(g_all_view, rotate_all_view_texture);
-
-    DrawLRView(view_mode);
-    RoateView(g_lr_single_view, rotate_lr_view_texture);
-
-    //DrawFBView(view_mode);
-    DrawFbUndistortView(view_mode, steeringWheelAngle);
-    RoateView(g_fb_single_view, rotate_fb_view_texture);
-
-#if 0
-    if(view_mode == VIEW_OVERALL)
+    if(view_mode < VIEW_FRONT_LEFT)
     {
-        ShowFourView();
+        if(view_mode == VIEW_OVERALL)
+        {
+            ShowFourView();
+        }
+        else
+        {
+            ShowSingleView(view_mode);
+        }
     }
     else
     {
-        ShowSingleView(view_mode, steeringWheelAngle);
+        Draw2DView();
+        RoateView(g_all_view, rotate_all_view_texture);
+
+        DrawLRView(view_mode);
+        RoateView(g_lr_single_view, rotate_lr_view_texture);
+
+        //DrawFBView(view_mode);
+        DrawFbUndistortView(view_mode, steeringWheelAngle);
+        RoateView(g_fb_single_view, rotate_fb_view_texture);
     }
-#endif
 }
 
 

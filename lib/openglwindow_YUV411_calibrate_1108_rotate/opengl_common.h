@@ -25,6 +25,11 @@ typedef struct _safImgRect {
 
 typedef enum _viewMode {
   	VIEW_OVERALL = 0,  
+    VIEW_FRONT,
+    VIEW_BACK,
+    VIEW_LEFT,
+    VIEW_RIGHT,
+    VIEW_DMS, 
     VIEW_FRONT_LEFT,  
     VIEW_FRONT_RIGHT, 
     VIEW_BACK_LEFT,  

@@ -22,7 +22,7 @@
 
 
 #define TEXTURE(N) "texture"#N
-#define ADJUST(N) "texture"#N"Adjust"
+#define ADJUST(N) "color"#N"Adjust"
 
 
 
@@ -397,6 +397,7 @@ void CaculateColorCoeff2D(unsigned char **image_buffer)
         color_ave[i].x = rgb_color[i].x / 255.0;
         color_ave[i].y = rgb_color[i].y / 255.0;
         color_ave[i].z = rgb_color[i].z / 255.0;
+       // printf("color_ave[%d] = %f %f %f\n",i,color_ave[i].x,color_ave[i].y,color_ave[i].z);
     }
 
     color_ave[8].x = (color_ave[0].x + color_ave[1].x) / 2;

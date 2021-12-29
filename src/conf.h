@@ -28,14 +28,14 @@
 #include <semaphore.h>
 #include <stdint.h>
 #define STATIC_DEBUG (0)
-#define VEHICLE_TYPE (0) /*0:Fuel 1:Electric 2:Heavy Truck*/ 
+#define VEHICLE_TYPE (2) /*0:Fuel 1:Electric 2:Heavy Truck*/ 
 #define VEHICLE_TYPE_FUEL (0)
 #define VEHICLE_TYPE_ELECTRIC (1)
 #define VEHICLE_TYPE_CHANGE_BATTERY (2)
 #define BSD_TYPE (1) /*0:jimu 1:Cheng Tech*/
 #define BSD_TYPE_JIMU (0)
 #define BSD_TYPE_CT (1)
-#define ENABLE_DISPLAYMODE_SWITCH (1)
+#define ENABLE_DISPLAYMODE_SWITCH (0)
 #define ENABLE_ROTATE (1)
 #if VEHICLE_TYPE == VEHICLE_TYPE_FUEL
 #define CAMERA_BACK_DEV "/dev/video0"
@@ -46,18 +46,18 @@
 #define CAMERA_CONTAINER_DEV "/dev/video5"
 #endif
 #if VEHICLE_TYPE == VEHICLE_TYPE_CHANGE_BATTERY
-// #define CAMERA_BACK_DEV "/dev/video2"
-// #define CAMERA_RIGTH_DEV "/dev/video1"//0
-// #define CAMERA_FRONT_DEV "/dev/video0"//2
-// #define CAMERA_LEFT_DEV "/dev/video3"
-// #define CAMERA_DMS_DEV "/dev/video4"
-// #define CAMERA_CONTAINER_DEV "/dev/video5"
-#define CAMERA_BACK_DEV "/dev/video0"
+#define CAMERA_BACK_DEV "/dev/video2"
 #define CAMERA_RIGTH_DEV "/dev/video1"//0
-#define CAMERA_FRONT_DEV "/dev/video2"//2
+#define CAMERA_FRONT_DEV "/dev/video0"//2
 #define CAMERA_LEFT_DEV "/dev/video3"
 #define CAMERA_DMS_DEV "/dev/video4"
 #define CAMERA_CONTAINER_DEV "/dev/video5"
+// #define CAMERA_BACK_DEV "/dev/video0"
+// #define CAMERA_RIGTH_DEV "/dev/video1"//0
+// #define CAMERA_FRONT_DEV "/dev/video2"//2
+// #define CAMERA_LEFT_DEV "/dev/video3"
+// #define CAMERA_DMS_DEV "/dev/video4"
+// #define CAMERA_CONTAINER_DEV "/dev/video5"
 #endif
 
 #define CAMERA_FRONT_DEV_ID 0

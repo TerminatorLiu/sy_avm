@@ -47,14 +47,14 @@ pthread_t g_render_th;
 struct yuv_org_data g_yuv_org_data;
 int32_t g_yuv_org_flag = 0;
 
-
 int ResetSaveImage();
 int SaveImage();
 /**
  * @brief Initialize camera related configuration parameters
  */
 
-void InitCameraParam() {
+void InitCameraParam()
+{
   const int32_t narraysize = sizeof(g_vin_conf) / sizeof(g_vin_conf[0]);
 
   g_sync_flag.flag = 0;
@@ -73,7 +73,8 @@ void InitCameraParam() {
 /**
  * @brief Memory allocation for frame rotatrion
  */
-void InitYuvFlipBuffer() {
+void InitYuvFlipBuffer()
+{
   /*buffer size is 1.5 * video size*/
   const int32_t nsize =
       CAMERA_WIDTH * CAMERA_HEIGHT + CAMERA_WIDTH * CAMERA_HEIGHT / 2;
@@ -81,9 +82,12 @@ void InitYuvFlipBuffer() {
   g_yuv_flip_buf.left_addr = malloc(nsize);
   g_yuv_flip_buf.right_addr = malloc(nsize);
   if ((NULL == g_yuv_flip_buf.left_addr) ||
-      (NULL == g_yuv_flip_buf.right_addr)) {
+      (NULL == g_yuv_flip_buf.right_addr))
+  {
     printf("malloc yuv flip buf failed\r\n");
-  } else {
+  }
+  else
+  {
     memset(g_yuv_flip_buf.left_addr, 0, nsize);
     memset(g_yuv_flip_buf.right_addr, 0, nsize);
   }
@@ -93,11 +97,14 @@ void InitYuvFlipBuffer() {
  * @brief release memrory
  **/
 
-void ExitYuvFlipBuffer() {
-  if (g_yuv_flip_buf.right_addr) {
+void ExitYuvFlipBuffer()
+{
+  if (g_yuv_flip_buf.right_addr)
+  {
     free(g_yuv_flip_buf.right_addr);
   }
-  if (g_yuv_flip_buf.left_addr) {
+  if (g_yuv_flip_buf.left_addr)
+  {
     free(g_yuv_flip_buf.left_addr);
   }
 }
@@ -116,13 +123,16 @@ int RenderWait() { return sem_wait(&g_sync_flag.sem); }
  * @brief signal handler function,release resource before application exit.
  * @param sig_no  signal number
  **/
-static void Terminate(int32_t sig_no) {
+static void Terminate(int32_t sig_no)
+{
   int32_t narray = sizeof(g_vin_conf) / sizeof(g_vin_conf[0]);
   int32_t ret;
 
   printf("Got signal %d, exiting ...\n", sig_no);
-  for (int32_t i = 0; i < narray; ++i) {
-    if (g_vin_conf[i].fd != -1) {
+  for (int32_t i = 0; i < narray; ++i)
+  {
+    if (g_vin_conf[i].fd != -1)
+    {
       ret = V4l2OpVidiocStreamOff(&g_vin_conf[i]);
       V4L2_OP_CHECK(ret == -1);
       close(g_vin_conf[i].fd);
@@ -131,7 +141,8 @@ static void Terminate(int32_t sig_no) {
   /*wait some time for kernel release resource*/
   usleep(50 * 1000);
   ExitYuvFlipBuffer();
-  if (g_yuv_org_flag) {
+  if (g_yuv_org_flag)
+  {
     DeinitYuvFromFile(&g_yuv_org_data);
   }
   ExitDmsThread();
@@ -142,7 +153,8 @@ static void Terminate(int32_t sig_no) {
 /**
  * @brief install signal hander function
  **/
-static void InstallSignalHandler(void) {
+static void InstallSignalHandler(void)
+{
   signal(SIGBUS, Terminate);
   signal(SIGFPE, Terminate);
   signal(SIGHUP, Terminate);
@@ -163,45 +175,54 @@ static void InstallSignalHandler(void) {
 /**
  * @brief open camera and configure parameter.
  **/
-void InitCamera() {
+void InitCamera()
+{
   int32_t narray = sizeof(g_vin_conf) / sizeof(g_vin_conf[0]);
   int32_t ret;
-  for (int32_t i = 0; i < narray; ++i) {
+  for (int32_t i = 0; i < narray; ++i)
+  {
     g_vin_conf[i].fd = V4l2OpOpen(&g_vin_conf[i]);
     V4L2_OP_CHECK(g_vin_conf[i].fd == -1);
   }
 
-  for (int32_t i = 0; i < narray; ++i) {
+  for (int32_t i = 0; i < narray; ++i)
+  {
     ret = V4l2OpVidiocsInput(&g_vin_conf[i]);
     V4L2_OP_CHECK(ret == -1);
   }
 
-  for (int32_t i = 0; i < narray; ++i) {
+  for (int32_t i = 0; i < narray; ++i)
+  {
     ret = V4l2OpVidiocsParm(&g_vin_conf[i]);
     V4L2_OP_CHECK(ret == -1);
   }
 
-  for (int32_t i = 0; i < narray; ++i) {
+  for (int32_t i = 0; i < narray; ++i)
+  {
     ret = V4l2OpVidiocsParm(&g_vin_conf[i]);
     V4L2_OP_CHECK(ret == -1);
   }
 
-  for (int32_t i = 0; i < narray; ++i) {
+  for (int32_t i = 0; i < narray; ++i)
+  {
     ret = V4l2OpVidiocsFmt(&g_vin_conf[i]);
     V4L2_OP_CHECK(ret == -1);
   }
 
-  for (int32_t i = 0; i < narray; ++i) {
+  for (int32_t i = 0; i < narray; ++i)
+  {
     ret = V4l2OpVidiocgParm(&g_vin_conf[i]);
     V4L2_OP_CHECK(ret == -1);
   }
 
-  for (int32_t i = 0; i < narray; ++i) {
+  for (int32_t i = 0; i < narray; ++i)
+  {
     ret = V4l2OpVidiocReqbufs(&g_vin_conf[i]);
     V4L2_OP_CHECK(ret == -1);
   }
 
-  for (int32_t i = 0; i < narray; ++i) {
+  for (int32_t i = 0; i < narray; ++i)
+  {
     ret = V4l2OpVidiocQuerybuf(&g_vin_conf[i]);
     V4L2_OP_CHECK(ret == -1);
   }
@@ -210,11 +231,13 @@ void InitCamera() {
 /**
  * @brief start camera data capature.
  **/
-void StartCamera() {
+void StartCamera()
+{
   int32_t narray = sizeof(g_vin_conf) / sizeof(g_vin_conf[0]);
   int32_t ret = -1;
 
-  for (int32_t i = 0; i < narray; ++i) {
+  for (int32_t i = 0; i < narray; ++i)
+  {
     ret = V4l2OpVidiocStreamOn(&g_vin_conf[i]);
     V4L2_OP_CHECK(ret == -1);
     gettimeofday(&g_vin_conf[i].tv, NULL);
@@ -226,7 +249,8 @@ void StartCamera() {
  *
  **/
 
-void ProcessFrame() {
+void ProcessFrame()
+{
   fd_set fds;
   struct timeval tv;
   int32_t r = -1;
@@ -235,15 +259,19 @@ void ProcessFrame() {
   int32_t narray = sizeof(g_vin_conf) / sizeof(g_vin_conf[0]);
   static int save_image = 0;
   static unsigned int save_flag = 0;
-  const unsigned int save_mask = (1<<narray) - 1;
+  const unsigned int save_mask = (1 << narray) - 1;
 
-  while (1) {
+  while (1)
+  {
     FD_ZERO(&fds);
     /*find max camera file description (fd)*/
-    for (int i = 0; i < narray; ++i) {
-      if (g_vin_conf[i].fd != -1) {
+    for (int i = 0; i < narray; ++i)
+    {
+      if (g_vin_conf[i].fd != -1)
+      {
         FD_SET(g_vin_conf[i].fd, &fds);
-        if (g_vin_conf[i].fd > camera_fd) {
+        if (g_vin_conf[i].fd > camera_fd)
+        {
           camera_fd = g_vin_conf[i].fd;
         }
       }
@@ -253,24 +281,30 @@ void ProcessFrame() {
 
     /*wait camera data ready*/
     r = select(camera_fd + 1, &fds, NULL, NULL, &tv);
-    
-    if (-1 == r) {
-      if (errno == EINTR) {
-        
+
+    if (-1 == r)
+    {
+      if (errno == EINTR)
+      {
+
         continue;
       }
-    } else if (r == 0) {
-      
+    }
+    else if (r == 0)
+    {
+
       continue;
     }
-    if(save_image == 0)
+    if (save_image == 0)
     {
       save_image = SaveImage();
     }
-    
-    for (int32_t i = 0; i < narray; ++i) {
+
+    for (int32_t i = 0; i < narray; ++i)
+    {
       int32_t fd = g_vin_conf[i].fd;
-      if ((fd != -1) && (FD_ISSET(fd, &fds))) {
+      if ((fd != -1) && (FD_ISSET(fd, &fds)))
+      {
         struct v4l2_buffer buf = {0};
         struct v4l2_plane plane = {0};
         struct timeval tv;
@@ -279,7 +313,8 @@ void ProcessFrame() {
         buf.memory = V4L2_MEMORY_MMAP;
         buf.length = 1;
         buf.m.planes = &plane;
-        if (-1 == ioctl(fd, VIDIOC_DQBUF, &buf)) {
+        if (-1 == ioctl(fd, VIDIOC_DQBUF, &buf))
+        {
           printf("%d:%s, VIDIOC_DQBUF failed\n", i, g_vin_conf[i].devname);
 
           V4L2_OP_CHECK(1);
@@ -295,41 +330,43 @@ void ProcessFrame() {
         g_current_camera_buffer[i].timestamp =
             tv.tv_sec * 1000 + tv.tv_usec / 1000;
         g_sync_flag.flag |= 1 << i;
-        if(save_image && !(save_flag & (1<<i)))
+        if (save_image && !(save_flag & (1 << i)))
         {
           char filename[256];
-			    char time_stmp[100];
-			    GetTimeStmpStr(time_stmp, "%Y-%m-%d_%H_%M_%S");
-			    sprintf(filename, "/home/bin/%d_%s.png", i, time_stmp);
-			    stbi_write_png(filename, 1280, 720, 1, g_current_camera_buffer[i].addr, 0);
-          printf("Save Image %s\n",filename);
+          char time_stmp[100];
+          GetTimeStmpStr(time_stmp, "%Y-%m-%d_%H_%M_%S");
+          sprintf(filename, "/home/bin/%d_%s.png", i, time_stmp);
+          stbi_write_png(filename, 1280, 720, 1, g_current_camera_buffer[i].addr, 0);
+          printf("Save Image %s\n", filename);
           sprintf(filename, "/home/bin/%d_%s.YUV", i, time_stmp);
-          FILE *fp = fopen(filename,"wr");
-          fwrite(g_current_camera_buffer[i].addr,1280*1080,1,fp);
+          FILE *fp = fopen(filename, "wr");
+          fwrite(g_current_camera_buffer[i].addr, 1280 * 1080, 1, fp);
           fclose(fp);
-          save_flag = save_flag | 1<<i;
+          save_flag = save_flag | 1 << i;
         }
-        const uint32_t mask = 0xF;
-        
-        if ((g_sync_flag.flag & mask) == mask) {
+        const uint32_t mask = 0x3F;
+
+        if ((g_sync_flag.flag & mask) == mask)
+        {
           /* four channel ready, front back left right */
           g_sync_flag.flag = 0;
 
           RenderPost();
         }
 
-        if (-1 == ioctl(fd, VIDIOC_QBUF, &buf)) {
+        if (-1 == ioctl(fd, VIDIOC_QBUF, &buf))
+        {
           printf("VIDIOC_QBUF buf.index %d failed\n", buf.index);
           continue;
         }
       }
     }
-    if(save_image == 1 && save_flag == save_mask)
+    if (save_image == 1 && save_flag == save_mask)
     {
       ResetSaveImage();
       save_image = 0;
       save_flag = 0;
-    }   
+    }
   }
 }
 
@@ -337,21 +374,23 @@ void ProcessFrame() {
  * @brief render thread task
  *
  */
-static void *RenderPthread(void *arg) {
+static void *RenderPthread(void *arg)
+{
   struct render_parameter *renderparam = (struct render_parameter *)arg;
   struct timeval tv;
   struct timeval tvend;
   InitOpenglesWindows();
   InitWindow();
-  for (;;) {
+  for (;;)
+  {
     RenderWait();
     // usleep(1000*1000);
     gettimeofday(&tv, NULL);
     int64_t timestamp = tv.tv_sec * 1000 + tv.tv_usec / 1000;
     /*printf(" mode : %d, timestame:%ld\r\n",  renderparam->mode, timestamp);*/
     /*called 360 surroud library function*/
+    //printf("(unsigned char*)renderparam->camerabuf[4].addr = %p\n",(unsigned char*)renderparam->camerabuf[4].addr);
     RenderWindow(renderparam);
-
     gettimeofday(&tvend, NULL);
     int64_t timestampend = tvend.tv_sec * 1000 + tvend.tv_usec / 1000;
     /* printf("frame internal:%d, mode:%d\r\n", timestampend -  timestamp,
@@ -364,21 +403,27 @@ static void *RenderPthread(void *arg) {
  * @brief create render pthread
  *
  */
-void InitRenderPthread() {
+void InitRenderPthread()
+{
   if (pthread_create(&g_render_th, NULL, RenderPthread, &g_render_parameter) ==
-      -1) {
+      -1)
+  {
     printf("pthread create failed\r\n");
-  } else {
+  }
+  else
+  {
     printf("render thread success\r\n");
   }
   pthread_detach(g_render_th);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   InitLogBuffer(DEBUG_LEVEL);
   InitTimer(LOG_PER_PERIOD);
   InitYuvFlipBuffer();
-  if ((argc > 1) && (strncmp(argv[1], "-t", 2) == 0)) {
+  if ((argc > 1) && (strncmp(argv[1], "-t", 2) == 0))
+  {
     g_yuv_org_flag = 1;
     g_yuv_org_data = InitYuvFromFile(YUV_FRONT_FILE_NAME, YUV_BACK_FILE_NAME,
                                      YUV_LEFT_FILE_NAME, YUV_RIGHT_FILE_NAME);
@@ -394,7 +439,7 @@ int main(int argc, char **argv) {
   // init_ser_pth("/dev/ttyS3");
   InitSerialPthread();
   InitDms(DMS_WORK_MODE, DMS_MODEL_PATH);
-#if VEHICLE_TYPE == VEHICLE_TYPE_CHANGE_BATTERY 
+#if VEHICLE_TYPE == VEHICLE_TYPE_CHANGE_BATTERY
   InitHardWare();
 #endif
 #if ENABLE_DISPLAYMODE_SWITCH
@@ -402,7 +447,8 @@ int main(int argc, char **argv) {
 #endif
   StartCamera();
   ProcessFrame();
-  while (1) {
+  while (1)
+  {
     usleep(100 * 1000);
   }
 }

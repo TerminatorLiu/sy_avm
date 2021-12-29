@@ -190,5 +190,9 @@ extern camParams rear_cam_params;
 extern camParams left_cam_params;
 extern camParams right_cam_params;
 
+
+extern safImgRect front_resizer;
+extern safImgRect rear_resizer;
+
 extern unsigned char* pu8_cam_vir[4];
 extern int cameraCalib(int carLength, int carWidth, int chess2carFront);

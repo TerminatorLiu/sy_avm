@@ -88,28 +88,26 @@ EGLDisplay egl_display;
 EGLSurface egl_surface;
 GLuint egl_program;
 #if STATIC_DEBUG
-unsigned char* gStaticDebugBuffer[4] = {0};
+unsigned char *gStaticDebugBuffer[4] = {0};
 int InitStaticDebug()
 {
-  for(int i = 0;i<4;++i)
+  for (int i = 0; i < 4; ++i)
   {
-    gStaticDebugBuffer[i] = (unsigned char*)malloc(1382400);
-    memset(gStaticDebugBuffer[i],128,1382400);
+    gStaticDebugBuffer[i] = (unsigned char *)malloc(1382400);
+    memset(gStaticDebugBuffer[i], 128, 1382400);
     char filename[128] = {0};
-    sprintf(filename,"test/%d.YUV",i);
-    FILE *fp = fopen(filename,"rb");
-    if(fp == NULL)
+    sprintf(filename, "test/%d.YUV", i);
+    FILE *fp = fopen(filename, "rb");
+    if (fp == NULL)
     {
-      printf("can not load %s\n",filename);
+      printf("can not load %s\n", filename);
     }
-    
-    fread(gStaticDebugBuffer[i],1,921600,fp);
+
+    fread(gStaticDebugBuffer[i], 1, 921600, fp);
     fclose(fp);
   }
-
 }
 #endif
-
 
 /**
  * @brief  Initialize opengles running environment.
@@ -271,11 +269,11 @@ void SaveFile(struct current_camera_buffer *buf, int32_t nlen)
 
 void RenderWindow(struct render_parameter *param)
 {
-  unsigned char *psrc[5] = {0};
+  unsigned char *psrc[6] = {0};
   float steer = GetSteerAngle();
   const char *switchmode = "unknown";
 
-  for (int i = 0; i < 4; ++i)
+  for (int i = 0; i < 6; ++i)
   {
     psrc[i] = (unsigned char *)param->camerabuf[i].addr;
   }
@@ -320,15 +318,17 @@ void RenderWindow(struct render_parameter *param)
     psrc[CAMERA_RIGTH_DEV_ID] = (unsigned char *)g_yuv_org_data.rightaddr;
   }
 #if STATIC_DEBUG
-    psrc[CAMERA_FRONT_DEV_ID] = gStaticDebugBuffer[0];
-    psrc[CAMERA_BACK_DEV_ID] =  gStaticDebugBuffer[1];
-    psrc[CAMERA_LEFT_DEV_ID] =  gStaticDebugBuffer[2];
-    psrc[CAMERA_RIGTH_DEV_ID] = gStaticDebugBuffer[3];
+  psrc[CAMERA_FRONT_DEV_ID] = gStaticDebugBuffer[0];
+  psrc[CAMERA_BACK_DEV_ID] = gStaticDebugBuffer[1];
+  psrc[CAMERA_LEFT_DEV_ID] = gStaticDebugBuffer[2];
+  psrc[CAMERA_RIGTH_DEV_ID] = gStaticDebugBuffer[3];
 #endif
   // printf("enter render\r\n");
+
   UpdateDmsData(psrc[CAMERA_DMS_DEV_ID]);
   gettimeofday(&tv, NULL);
   int64_t timestamp = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+
 #ifdef SCREEN_ROTATE
   switch (GetDisplayMode())
   {
@@ -366,6 +366,14 @@ void RenderWindow(struct render_parameter *param)
     UpdateTexture(psrc);
     param->mode = VIEW_BACK_RIGHT;
     RunRender(param->mode, steer / REVERSE_TRAJECTORY_COE);
+    break;
+  case DMS_RIGHT_MODE:
+    switchmode = "DMS_RIGHT_MODE";
+    psrc[4] = (unsigned char *)param->camerabuf[CAMERA_DMS_DEV_ID].addr;
+    UpdateTexture(psrc);
+    param->mode = VIEW_DMS;
+    RunRender(param->mode, steer / REVERSE_TRAJECTORY_COE);
+
     break;
   case ORIGIN_VIEW_AVM_MODE:
     switchmode = "ORIGIN_VIEW_AVM_MODE";

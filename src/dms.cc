@@ -14,7 +14,7 @@
 #include "linux-serial-app.h"
 #include "proto.h"
 #include "sy_log.h"
-
+#include "stbi_image_write.h"
 void *g_dmshandle = NULL;
 static pthread_t g_dms_pth;
 static char *g_dms_data_buffer_t = NULL;
@@ -65,13 +65,15 @@ static void SetDmsBusyFlag(int flag);
 static int GetDmsBusyFlag();
 static void *DmsStartRoutine(void *argc);
 
-static void SetDmsBusyFlag(int flag) {
+static void SetDmsBusyFlag(int flag)
+{
   pthread_rwlock_wrlock(&g_dms_flag_lock);
   g_dms_busy_flag = flag;
   pthread_rwlock_unlock(&g_dms_flag_lock);
 }
 
-int GetDmsBusyFlag() {
+int GetDmsBusyFlag()
+{
   int flag = 0;
   pthread_rwlock_rdlock(&g_dms_flag_lock);
   flag = g_dms_busy_flag;
@@ -79,8 +81,10 @@ int GetDmsBusyFlag() {
   return flag;
 }
 
-void UpdateDmsData(void *data) {
-  if (0 == GetDmsBusyFlag()) {
+void UpdateDmsData(void *data)
+{
+  if (0 == GetDmsBusyFlag())
+  {
     g_dms_data_buffer = (char *)data;
     CvMat m = cvMat(720, 1280, CV_8UC1, g_dms_data_buffer);
     CvMat m2 = cvMat(1280, 720, CV_8UC1, g_dms_data_buffer_t);
@@ -91,9 +95,11 @@ void UpdateDmsData(void *data) {
   }
 }
 
-static void UploadDMSDetectResult(const int32_t dms_res) {
+static void UploadDMSDetectResult(const int32_t dms_res)
+{
   // printf("dms res:%d\r\n", dms_res);
-  if (1) {
+  if (1)
+  {
     LOGOUT_INFO("dms result:%d", dms_res);
     printf("dms result:%d\n", dms_res);
   }
@@ -101,63 +107,65 @@ static void UploadDMSDetectResult(const int32_t dms_res) {
   uint8_t dtout[16] = {0};
   int32_t outlen = 0;
   uint8_t ret = 0xFF;
-  switch (dms_res) {
-    case NO_FACE_DS:
+  switch (dms_res)
+  {
+  case NO_FACE_DS:
 
-      /*AddTxBuffer(CCS_SER_IDX, DMS_NOFACE_ALRAM_MSG,
+    /*AddTxBuffer(CCS_SER_IDX, DMS_NOFACE_ALRAM_MSG,
                   sizeof(DMS_NOFACE_ALRAM_MSG));*/
-      ret = DMS_NOFACE_ALRAM;
-      break;
+    ret = DMS_NOFACE_ALRAM;
+    break;
 
-    case SMOKING_DS:
-      /*AddTxBuffer(CCS_SER_IDX, DMS_SMOKE_ALRAM_MSG,
+  case SMOKING_DS:
+    /*AddTxBuffer(CCS_SER_IDX, DMS_SMOKE_ALRAM_MSG,
                   sizeof(DMS_SMOKE_ALRAM_MSG));*/
-      ret = DMS_SMOKE_ALRAM;
-      break;
+    ret = DMS_SMOKE_ALRAM;
+    break;
 
-    case PHONING_DS:
-      /*AddTxBuffer(CCS_SER_IDX, DMS_PHOING_ALRAM_MSG,
+  case PHONING_DS:
+    /*AddTxBuffer(CCS_SER_IDX, DMS_PHOING_ALRAM_MSG,
                   sizeof(DMS_PHOING_ALRAM_MSG));*/
-      ret = DMS_PHOING_ALRAM;
-      break;
+    ret = DMS_PHOING_ALRAM;
+    break;
 
-    case CLOSED_EYE_DS:
-      /*AddTxBuffer(CCS_SER_IDX, DMS_CLOSEEYE_ALRAM_MSG,
+  case CLOSED_EYE_DS:
+    /*AddTxBuffer(CCS_SER_IDX, DMS_CLOSEEYE_ALRAM_MSG,
                   sizeof(DMS_CLOSEEYE_ALRAM_MSG));*/
-      ret = DMS_CLOSEEYE_ALRAM;
-      break;
+    ret = DMS_CLOSEEYE_ALRAM;
+    break;
 
-    case YAWNING_DS:
-      /*AddTxBuffer(CCS_SER_IDX, DMS_YAWNG_ALRAM_MSG,
+  case YAWNING_DS:
+    /*AddTxBuffer(CCS_SER_IDX, DMS_YAWNG_ALRAM_MSG,
                   sizeof(DMS_YAWNG_ALRAM_MSG));*/
-      ret = DMS_YAWNG_ALRAM;
-      break;
-    case LOOK_AROUND_DS:
-      /*AddTxBuffer(CCS_SER_IDX, DMS_LOOKAROUND_ALRAM_MSG,
+    ret = DMS_YAWNG_ALRAM;
+    break;
+  case LOOK_AROUND_DS:
+    /*AddTxBuffer(CCS_SER_IDX, DMS_LOOKAROUND_ALRAM_MSG,
                   sizeof(DMS_LOOKAROUND_ALRAM_MSG));*/
-      ret = DMS_LOOKAROUND_ALRAM;
-      break;
-    case UP_HEAD_DS:
-      /*AddTxBuffer(CCS_SER_IDX, DMS_UPHEAD_ALRAM_MSG,
+    ret = DMS_LOOKAROUND_ALRAM;
+    break;
+  case UP_HEAD_DS:
+    /*AddTxBuffer(CCS_SER_IDX, DMS_UPHEAD_ALRAM_MSG,
                   sizeof(DMS_UPHEAD_ALRAM_MSG));*/
-      ret = DMS_UPHEAD_ALRAM;
-      break;
-    case OCCLUSION_DS:
-      /*AddTxBuffer(CCS_SER_IDX, DMS_OCCLUSIOM_ALRAM_MSG,
+    ret = DMS_UPHEAD_ALRAM;
+    break;
+  case OCCLUSION_DS:
+    /*AddTxBuffer(CCS_SER_IDX, DMS_OCCLUSIOM_ALRAM_MSG,
                   sizeof(DMS_OCCLUSIOM_ALRAM_MSG));*/
-      ret = DMS_OCCLUSIOM_ALRAM;
-      break;
-    default:
-      /*AddTxBuffer(CCS_SER_IDX, DMS_NORMAL_ALRAM_MSG,
+    ret = DMS_OCCLUSIOM_ALRAM;
+    break;
+  default:
+    /*AddTxBuffer(CCS_SER_IDX, DMS_NORMAL_ALRAM_MSG,
                   sizeof(DMS_NORMAL_ALRAM_MSG));*/
-      ret = DMS_NORMAL_ALRAM;
-      break;
+    ret = DMS_NORMAL_ALRAM;
+    break;
   }
   outlen = EncodeJimuOutCommand(dtout, APP_DMS_DECTECT_CMD, (uint8_t *)&ret, 1);
   AddTxBuffer(CCS_SER_IDX, dtout, outlen);
 }
 
-static void *DmsStartRoutine(void *argc) {
+static void *DmsStartRoutine(void *argc)
+{
   int tm = 0;
   const int DMS_MASK = 2046;
   int speed = 60;
@@ -168,14 +176,15 @@ static void *DmsStartRoutine(void *argc) {
       init_fatigue_driving(DMS_MODEL_PATH, DMS_WORK_MODE, NULL, false, false);
   g_dms_data_buffer_t = (char *)malloc(921600);
   LOGOUT_INFO("dms init finished");
-  LOGOUT_INFO("bsd init finished");
-  LOGOUT_INFO("aeb init finished");
-  LOGOUT_INFO("camera init finished");
-  while (g_dms_running_flag) {
-    if ((g_dms_data_buffer_t != NULL) && (g_dmshandle != NULL)) {
+  printf("DMS Version:%s\n", get_version_fatigue_driving());
+  while (g_dms_running_flag)
+  {
+    if ((g_dms_data_buffer_t != NULL) && (g_dmshandle != NULL))
+    {
       SetDmsBusyFlag(0);
       int ret = sem_wait(&g_dms_sem);
-      if ((ret != 0) && (errno == EINTR)) {
+      if ((ret != 0) && (errno == EINTR))
+      {
         /*system call interupt by signal, wait again*/
         SetDmsBusyFlag(1);
         usleep(5 * 1000);
@@ -183,9 +192,17 @@ static void *DmsStartRoutine(void *argc) {
       }
 
       SetDmsBusyFlag(1);
-      dms_res = 0;
+      // {
+      //   char filename[256];
+      //   sprintf(filename, "/home/bin/dms%d.png", tm);
+      //   stbi_write_png(filename,720, 1280, 1, g_dms_data_buffer_t, 0);
+      //   printf("Save Image %s\n", filename);
+      // }
+      //dms_res = 0;
       dms_res = detect_fatigue_driving(g_dmshandle, g_dms_data_buffer_t, 720,
                                        1280, speed, DMS_MASK, ++tm);
+      //UploadDMSDetectResult(206);
+      //usleep(500 * 1000);
       UploadDMSDetectResult(dms_res);
     }
     SetDmsBusyFlag(1);
@@ -194,7 +211,8 @@ static void *DmsStartRoutine(void *argc) {
   return (void *)"DmsStartRoutine";
 }
 
-int InitDms(int mode, char *model_path) {
+int InitDms(int mode, char *model_path)
+{
   int ret = -1;
   printf("dms version:%s\r\n", get_version_fatigue_driving());
   ret = pthread_rwlock_init(&g_dms_flag_lock, NULL);
@@ -203,18 +221,22 @@ int InitDms(int mode, char *model_path) {
   ret = pthread_create(&g_dms_pth, NULL, DmsStartRoutine, g_dmshandle);
 }
 
-void ExitDmsThread() {
+void ExitDmsThread()
+{
   void *status;
   g_dms_running_flag = 0;
   pthread_join(g_dms_pth, &status);
 }
 
-void DestroyDms() {
-  if (g_dmshandle != NULL) {
+void DestroyDms()
+{
+  if (g_dmshandle != NULL)
+  {
     release_fatigue_driving(g_dmshandle);
   }
   pthread_rwlock_destroy(&g_dms_flag_lock);
-  if (g_dms_data_buffer_t != NULL) {
+  if (g_dms_data_buffer_t != NULL)
+  {
     free(g_dms_data_buffer_t);
   }
 }
