@@ -324,8 +324,9 @@ void RenderWindow(struct render_parameter *param)
   psrc[CAMERA_RIGTH_DEV_ID] = gStaticDebugBuffer[3];
 #endif
   // printf("enter render\r\n");
-
+#if ENABLE_DMS
   UpdateDmsData(psrc[CAMERA_DMS_DEV_ID]);
+#endif
   gettimeofday(&tv, NULL);
   int64_t timestamp = tv.tv_sec * 1000 + tv.tv_usec / 1000;
 

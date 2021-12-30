@@ -145,8 +145,10 @@ static void Terminate(int32_t sig_no)
   {
     DeinitYuvFromFile(&g_yuv_org_data);
   }
+#if ENABLE_DMS
   ExitDmsThread();
   DestroyDms();
+#endif
   exit(0);
 }
 
@@ -332,6 +334,11 @@ void ProcessFrame()
         g_sync_flag.flag |= 1 << i;
         if (save_image && !(save_flag & (1 << i)))
         {
+          if(save_flag == 0)
+          {
+            system("rm -rf *.png");
+            system("rm -rf *.YUV");
+          }
           char filename[256];
           char time_stmp[100];
           GetTimeStmpStr(time_stmp, "%Y-%m-%d_%H_%M_%S");
@@ -438,7 +445,9 @@ int main(int argc, char **argv)
   InitRenderPthread();
   // init_ser_pth("/dev/ttyS3");
   InitSerialPthread();
+#if ENABLE_DMS
   InitDms(DMS_WORK_MODE, DMS_MODEL_PATH);
+#endif
 #if VEHICLE_TYPE == VEHICLE_TYPE_CHANGE_BATTERY
   InitHardWare();
 #endif

@@ -4,7 +4,7 @@ SRCS_CC  := $(wildcard *.cc)
 BIN_PATH := ../bin
 OBJ_PATH := ../obj
 OBJ_SUB_PATH := $(OBJ_PATH)
-
+include MakeConf
 #/home/visem/project/tools/sdk_lib/include/opengl/include/khronos/original/EGL
 T5_SDK := /home/lt/Desktop/T507/T5_SDK
 
@@ -27,8 +27,14 @@ INC += -I ../include/opencv3410/
 # /home/visem/tftpboot/libOpenCV.a
 #sdk_lib/include/opengl/include/khronos/original sdk_openCV
 INC += -I$(T5_SDK)/sdk_lib/include/opengl/include/khronos/original/
+ifeq ($(DEBUG),1)
 CFLAGS := -g $(INC) -Wno-write-strings -Wall -Wl,-rpath=/home/lib
+else
+CFLAGS := -O2 $(INC) -Wno-write-strings -Wall -Wl,-rpath=/home/lib
+endif
+ifeq ($(ENABLE_DMS),1)
 LIBS += -L../lib/ -lMNN -lncnn  -ltensorflow-lite -lopencv_world -ldms_T5
+endif
 LIBS += -L../lib/  -lsdk_openCV -Llib -lGLESv2 -lmali  -lpthread 
 LIBS += ../lib/openglwindow_YUV411_calibrate_1102/openglwindow_YUV411_calibrate/lib/libOpenGLWindow.a 
 

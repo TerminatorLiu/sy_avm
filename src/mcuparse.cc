@@ -160,7 +160,7 @@ int32_t UpdateTurn(uint8_t canmsg[])
 
 int32_t ParseCANID(uint8_t *canid)
 {
-  //printf("%x %x %x %x\n",canid[0],canid[1],canid[2],canid[3]);
+  printf("%x %x %x %x\n",canid[0],canid[1],canid[2],canid[3]);
 #if VEHICLE_TYPE == VEHICLE_TYPE_CHANGE_BATTERY
 #if BSD_TYPE == BSD_TYPE_CT
   if(canid[0] == 0x00 && canid[1] == 0x00 && canid[2] == 0x07 && canid[3] == 0xB5)

@@ -1,3 +1,4 @@
+
 #include <errno.h>
 #include <pthread.h>
 #include <semaphore.h>
@@ -15,6 +16,8 @@
 #include "proto.h"
 #include "sy_log.h"
 #include "stbi_image_write.h"
+#include "conf.h"
+#if ENABLE_DMS
 void *g_dmshandle = NULL;
 static pthread_t g_dms_pth;
 static char *g_dms_data_buffer_t = NULL;
@@ -240,3 +243,4 @@ void DestroyDms()
     free(g_dms_data_buffer_t);
   }
 }
+#endif
