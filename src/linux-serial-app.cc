@@ -100,6 +100,35 @@ void InitSerialInfo() {
   serial_info[MCU_SER_IDX].rx_ser_task = SerialRxTask;
   serial_info[MCU_SER_IDX].tx_ser_task = SerialTxTask;
   serial_info[MCU_SER_IDX].state = MCU_SYNC_STATE1;
+#if REV_RADAR == REV_RADAR_SHUNHE
+  serial_info[BACK_RIGHT_RADAR_SER_IDX].fd = -1;
+  serial_info[BACK_RIGHT_RADAR_SER_IDX].devname = BACK_RIGHT_RADAR_SER_DEV_NAME;
+  serial_info[BACK_RIGHT_RADAR_SER_IDX].name = "back right radar";
+  serial_info[BACK_RIGHT_RADAR_SER_IDX].baudrate = BACK_RIGHT_RADAR_SER_DEV_BAUDRATE;
+  serial_info[BACK_RIGHT_RADAR_SER_IDX].tx_buf.rx = 0;
+  serial_info[BACK_RIGHT_RADAR_SER_IDX].tx_buf.wd = 0;
+  serial_info[BACK_RIGHT_RADAR_SER_IDX].rx_buf.rx = 0;
+  serial_info[BACK_RIGHT_RADAR_SER_IDX].rx_buf.wd = 0;
+  serial_info[BACK_RIGHT_RADAR_SER_IDX].idx = BACK_RIGHT_RADAR_SER_IDX;
+  serial_info[BACK_RIGHT_RADAR_SER_IDX].parse_ser_task = SerialParseTask;
+  serial_info[BACK_RIGHT_RADAR_SER_IDX].rx_ser_task = SerialRxTask;
+  serial_info[BACK_RIGHT_RADAR_SER_IDX].tx_ser_task = SerialTxTask;
+  serial_info[BACK_RIGHT_RADAR_SER_IDX].state = 0;//TODO
+
+  serial_info[BACK_LEFT_RADAR_SER_IDX].fd = -1;
+  serial_info[BACK_LEFT_RADAR_SER_IDX].devname = BACK_LEFT_RADAR_SER_DEV_NAME;
+  serial_info[BACK_LEFT_RADAR_SER_IDX].name = "back left radar";
+  serial_info[BACK_LEFT_RADAR_SER_IDX].baudrate = BACK_LEFT_RADAR_SER_DEV_BAUDRATE;
+  serial_info[BACK_LEFT_RADAR_SER_IDX].tx_buf.rx = 0;
+  serial_info[BACK_LEFT_RADAR_SER_IDX].tx_buf.wd = 0;
+  serial_info[BACK_LEFT_RADAR_SER_IDX].rx_buf.rx = 0;
+  serial_info[BACK_LEFT_RADAR_SER_IDX].rx_buf.wd = 0;
+  serial_info[BACK_LEFT_RADAR_SER_IDX].idx = BACK_LEFT_RADAR_SER_IDX;
+  serial_info[BACK_LEFT_RADAR_SER_IDX].parse_ser_task = SerialParseTask;
+  serial_info[BACK_LEFT_RADAR_SER_IDX].rx_ser_task = SerialRxTask;
+  serial_info[BACK_LEFT_RADAR_SER_IDX].tx_ser_task = SerialTxTask;
+  serial_info[BACK_LEFT_RADAR_SER_IDX].state = 0;//TODO
+#endif
 }
 
 /**
@@ -213,6 +242,10 @@ int32_t OpenSerialPort(const char *devname, int32_t baudrate) {
 
   /* Clear parity bit, disabling parity (most common) */
   tty.c_cflag &= ~PARENB;
+#if REV_RADAR == REV_RADAR_SHUNHE
+  tty.c_cflag &= PARENB;
+  tty.c_cflag &= PARODD;
+#endif
 
   /* Clear stop field, only one stop bit used in communication (most common) */
   tty.c_cflag &= ~CSTOPB;
@@ -346,9 +379,17 @@ static void *SerialRxTask(void *arg) {
     if ((ret > 0) && (pollfd[0].revents & POLLIN)) {
       num = 0;
       if (ioctl(pollfd[0].fd, FIONREAD, &num) == 0) {
+        //printf("num = %d\n",num);
         nread = min(num, (int)(sizeof(buf) / sizeof(buf[0])));
         ret = read(pollfd[0].fd, buf, nread);
-
+        for(int kk  = 0;kk<num;++kk)
+        {
+          if(num == 1)
+          {
+            printf("    ");
+          }
+          printf("data[%d] = %2x\n",kk,buf[kk]);
+        }
         if (ret > 0) {
           AddRxBuffer(p_ser_info, buf, ret);
         }
@@ -428,7 +469,9 @@ static void *SerialParseTask(void *arg) {
           /* code */
           ScreenParseCmd(ser_info);
           break;
-
+#if REV_RADAR == REV_RADAR_SHUNHE
+          //TODO
+#endif
         default:
           break;
       }

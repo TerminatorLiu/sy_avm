@@ -15,6 +15,8 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include <conf.h>
+
 #define SERIA_BUF_SIZE 512
 
 extern int parse_ui_ser_msg(uint8_t *dtin, uint8_t *dtout);
@@ -65,8 +67,6 @@ struct AMS_Parameter {
   int chess2carFront;
 };
 
-#define SER_BUF_CNT 2
-
 #define CCS_SER_IDX 0
 #define MCU_SER_IDX 1
 
@@ -76,6 +76,25 @@ struct AMS_Parameter {
 
 #define MCU_SER_DEV_NAME "/dev/ttyS1"
 #define MCU_SER_DEV_BAUDRATE 115200
+
+#if REV_RADAR == REV_RADAR_NONE
+#define SER_BUF_CNT 2
+#endif
+
+#if REV_RADAR == REV_RADAR_SHUNHE
+#define SER_BUF_CNT 4
+#define BACK_RIGHT_RADAR_SER_IDX 2
+#define BACK_LEFT_RADAR_SER_IDX 3
+#define BACK_RIGHT_RADAR_SER_DEV_NAME "/dev/ttyS4"
+#define BACK_RIGHT_RADAR_SER_DEV_BAUDRATE 19200
+
+#define BACK_LEFT_RADAR_SER_DEV_NAME "/dev/ttyS5"
+#define BACK_LEFT_RADAR_SER_DEV_BAUDRATE 19200
+#endif
+
+
+
+
 
 void InitSerialPthread(void);
 int32_t AddTxBuffer(const int32_t idx, const uint8_t buf[],const int32_t len);

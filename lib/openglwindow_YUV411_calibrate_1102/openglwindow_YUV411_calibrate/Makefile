@@ -16,7 +16,7 @@ INC += -I$(T5_SDK)/sdk_lib/include/opengl/include
 INC += -I$(T5_SDK)/sdk_lib/include/opengl/include/khronos/original/
 INC += -I/home/visem/project/linuxvideo/linuxvideo/lib/libOpenCV
 
-CFLAGS := -g -Wall -Wfatal-errors -Wno-unused-result -Wno-unknown-pragmas -fPIC \
+CFLAGS := -O2 -Wall -Wfatal-errors -Wno-unused-result -Wno-unknown-pragmas -fPIC \
       -Wno-sign-compare -Wno-sign-compare  -Wno-unused-variable \
       -Wno-unused-but-set-variable 
 

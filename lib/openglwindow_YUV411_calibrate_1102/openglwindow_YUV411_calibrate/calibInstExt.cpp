@@ -57,11 +57,11 @@ int run_calib_InstExt(const CvMat* img_src,const CvSeq* image_points_seq,CvMat* 
 	CvMat dist_coeffs0 = cvMat( 1, 4, CV_64F, _dist_coeffs );
 
 	double reprojection_err = 1000.0;
-	float real2pix_ratio = 2.0;
+	float real2pix_ratio = 1.5;
 	float fx,fy;
 
 	int center_x =( WIDVPFE>>2),center_y = (HEIVPFE>>2);
-#if 0 //jimu
+
 	fx = 366.6896908038024 / 2;
 	fy = 356.1124332021072 / 2;
 		
@@ -69,21 +69,33 @@ int run_calib_InstExt(const CvMat* img_src,const CvSeq* image_points_seq,CvMat* 
 	_dist_coeffs[1]   = 0.008072033197747085;
 	_dist_coeffs[2]   = -0.01052453285682819;
 	_dist_coeffs[3]   = 0.003438989378898739;
-#endif
-#if 1 //lizhong
-	fx = 426.95049171315713/2;
-	fy = 422.51206653627668/2;
 
-	_dist_coeffs[0]   = -0.021531949583269129;
-	_dist_coeffs[1]   =  -0.0033619676470765807;
-	_dist_coeffs[2]   =  0.0025146098463850689;
-	_dist_coeffs[3]   =  -0.0015286632382554609;
-#endif
+    if(cam_id < 2)
+    {
+        fx = 358.47821182338475 / 2;
+        fy = 355.72963383223328 / 2;
+
+
+        _dist_coeffs[0]   = -0.0070845942839427014;
+        _dist_coeffs[1]   =  -0.019164490233966703;
+        _dist_coeffs[2]   =  0.0047466118871461417;
+        _dist_coeffs[3]   = -0.00062181781886237492;
+    }
+    else
+    {
+        fx = 426.95049171315713 / 2;
+        fy = 422.51206653627668 / 2;
+
+        _dist_coeffs[0]   = -0.021531949583269129;
+        _dist_coeffs[1]   =  -0.0033619676470765807;
+        _dist_coeffs[2]   =  0.0025146098463850689;
+        _dist_coeffs[3]   =  -0.0015286632382554609;
+    }
+
 	_camera[0] = fx;
 	_camera[4] = fy;
 	_camera[2] = center_x;
 	_camera[5] = center_y;
-
 
 
 	printf("\ncam[%d] run_calib_InstExt *******************\n",cam_id);
