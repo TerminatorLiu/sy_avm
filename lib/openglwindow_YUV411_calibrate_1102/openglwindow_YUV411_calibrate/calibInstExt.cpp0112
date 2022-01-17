@@ -57,17 +57,25 @@ int run_calib_InstExt(const CvMat* img_src,const CvSeq* image_points_seq,CvMat* 
 	CvMat dist_coeffs0 = cvMat( 1, 4, CV_64F, _dist_coeffs );
 
 	double reprojection_err = 1000.0;
-	float real2pix_ratio = 1.5;
+	float real2pix_ratio = 1.5f;
 	float fx,fy;
 
 	int center_x =( WIDVPFE>>2),center_y = (HEIVPFE>>2);
 
+	fx = 366.6896908038024 / 2;
+	fy = 356.1124332021072 / 2;
+		
+	_dist_coeffs[0]   = -0.03647013101842009;
+	_dist_coeffs[1]   = 0.008072033197747085;
+	_dist_coeffs[2]   = -0.01052453285682819;
+	_dist_coeffs[3]   = 0.003438989378898739;
 
-	if(cam_id < 2)
+    if(cam_id < 2)
     {	
         fx = 198.185;
         fy = 195.247;
-				
+				//0.0290121	-0.0102488	-0.00374643	0.000431271	198.185	195.247	21
+
         _dist_coeffs[0]   = 0.0290121;
         _dist_coeffs[1]   =  -0.0102488;
         _dist_coeffs[2]   =  -0.00374643;
@@ -83,13 +91,14 @@ int run_calib_InstExt(const CvMat* img_src,const CvSeq* image_points_seq,CvMat* 
         _dist_coeffs[2]   =  0.0025146098463850689;
         _dist_coeffs[3]   =  -0.0015286632382554609;
     }
+
 	_camera[0] = fx;
 	_camera[4] = fy;
 	_camera[2] = center_x;
 	_camera[5] = center_y;
 
 
-	printf("\ncam[%d] run_calib_InstExt ******************* %d %d %d\n",cam_id, parking_assistant_params.car_length, parking_assistant_params.car_width, parking_assistant_params.LRchess2carFront_distance);
+	printf("\ncam[%d] run_calib_InstExt *******************\n",cam_id);
 
 	cvSet(obj_FullPoints,cvScalar(0.,0.,-10000.),0);
 
@@ -121,7 +130,6 @@ int run_calib_InstExt(const CvMat* img_src,const CvSeq* image_points_seq,CvMat* 
 	initObjectPoints(obj_FullPoints,output_full_size,cam_id,parking_assistant_params,real2pix_ratio,0);
 	cvProjectPoints_fisheyeD1(obj_FullPoints,rot_vects,trans_vects,&camera,&dist_coeffs0,project_Points,NULL,NULL,NULL,NULL,NULL);			
 	interpolate_image(img_src,output_full_size,img_rectify0,project_Points);
-	
 	// find the square0 corners	
 	found0 = cvFindSquareCorners( img_rectify0, square0, parking_assistant_params, real2pix_ratio,cam_id ,0);		
 	//*************project square1***************

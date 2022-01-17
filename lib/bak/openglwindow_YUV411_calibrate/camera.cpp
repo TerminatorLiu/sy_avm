@@ -138,9 +138,10 @@ int cameraCalib(int carLength, int carWidth, int chess2carFront)
 							board_size,corners_count);
 	#if 1
 	printf("calculate front\n");	
-
+	printf("cameraCalib three value %d %d %d in %s:%d\n", para_field.car_length, para_field.car_width, para_field.LRchess2carFront_distance,__FILE__,__LINE__);
 	if(find[0])
 	{
+		printf("cameraCalib three value %d %d %d in %s:%d\n", para_field.car_length, para_field.car_width, para_field.LRchess2carFront_distance,__FILE__,__LINE__);
 		ret = run_calib_InstExt(frontImage,front_image_points_seq,&camera, &dist_coeffs,
 								&extr_params,0,para_field);
 	}
@@ -177,6 +178,7 @@ int cameraCalib(int carLength, int carWidth, int chess2carFront)
 	printf("calculate back\n");
 	if(find[1])
 	{
+		printf("cameraCalib three value %d %d %d in %s:%d\n", para_field.car_length, para_field.car_width, para_field.LRchess2carFront_distance,__FILE__,__LINE__);
 		ret = run_calib_InstExt(rearImage,rear_image_points_seq,&camera, &dist_coeffs,
 							&extr_params,1,para_field);
 	}
@@ -214,7 +216,8 @@ int cameraCalib(int carLength, int carWidth, int chess2carFront)
 	printf("calculate left\n");
 	if(find[2])
 	{
-		ret = run_calib_InstExt(leftImage,left_image_points_seq,&camera, &dist_coeffs,
+		printf("cameraCalib three value %d %d %d in %s:%d\n", para_field.car_length, para_field.car_width, para_field.LRchess2carFront_distance,__FILE__,__LINE__);
+	  ret = run_calib_InstExt(leftImage,left_image_points_seq,&camera, &dist_coeffs,
 							&extr_params,2,para_field);
 	}
 	else
@@ -251,6 +254,7 @@ int cameraCalib(int carLength, int carWidth, int chess2carFront)
 
 	if(find[3])
 	{
+		printf("cameraCalib three value %d %d %d in %s:%d\n", para_field.car_length, para_field.car_width, para_field.LRchess2carFront_distance,__FILE__,__LINE__);
 		ret = run_calib_InstExt(rightImage,right_image_points_seq,&camera, &dist_coeffs,
 							&extr_params,3,para_field);
 	}
