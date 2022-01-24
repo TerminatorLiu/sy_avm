@@ -32,10 +32,10 @@ mount -t nfs -o nolock 192.168.1.101:/home/lt/liutao_mnt /liutao_mnt
 #include <semaphore.h>
 #include <stdint.h>
 #define STATIC_DEBUG (0)
-#define VEHICLE_TYPE (0) /*0:Fuel 1:Electric 2:Heavy Truck*/ 
-#define VEHICLE_TYPE_FUEL (0)
-#define VEHICLE_TYPE_ELECTRIC (1)
-#define VEHICLE_TYPE_CHANGE_BATTERY (2)
+#define CHASSIS_TYPE (0) /*0:Fuel 1:Electric 2:Heavy Truck*/ 
+#define CHASSIS_TYPE_FUEL (0)
+#define CHASSIS_TYPE_ELECTRIC (1)
+#define CHASSIS_TYPE_CHANGE_BATTERY (2)
 #define BSD_TYPE (1) /*0:jimu 1:Cheng Tech*/
 #define BSD_TYPE_JIMU (0)
 #define BSD_TYPE_CT (1)
@@ -44,8 +44,14 @@ mount -t nfs -o nolock 192.168.1.101:/home/lt/liutao_mnt /liutao_mnt
 #define REV_RADAR_SHUNHE (1) 
 #define ENABLE_DISPLAYMODE_SWITCH (0)
 #define ENABLE_ROTATE (0)
+#define DISABLE_LEFT_FLIP (0)
+#define ENABLE_LEFT_FLIP (1)
+#define DISABLE_RIGHT_FLIP (0)
+#define ENABLE_RIGHT_FLIP (1)
+#define VECHICLE_TYPE_DUMP (0)
+#define VECHICLE_TYPE_MIXER (1)
 #define ENABLE_DMS (0)
-#if VEHICLE_TYPE == VEHICLE_TYPE_FUEL
+#if CHASSIS_TYPE == CHASSIS_TYPE_FUEL
 #define CAMERA_BACK_DEV "/dev/video0"
 #define CAMERA_RIGTH_DEV "/dev/video1"
 #define CAMERA_FRONT_DEV "/dev/video2"
@@ -53,7 +59,7 @@ mount -t nfs -o nolock 192.168.1.101:/home/lt/liutao_mnt /liutao_mnt
 #define CAMERA_DMS_DEV "/dev/video4"
 #define CAMERA_CONTAINER_DEV "/dev/video5"
 #endif
-#if VEHICLE_TYPE == VEHICLE_TYPE_CHANGE_BATTERY
+#if CHASSIS_TYPE == CHASSIS_TYPE_CHANGE_BATTERY
 #define CAMERA_BACK_DEV "/dev/video2"
 #define CAMERA_RIGTH_DEV "/dev/video1"//0
 #define CAMERA_FRONT_DEV "/dev/video0"//2
@@ -122,5 +128,19 @@ struct yuv_flip_buf {
   void *left_addr;
   void *right_addr;
 };
+
+int GetFilpLeft();
+
+int SetFlipLeft(int desired);
+
+int GetFilpRight();
+
+int SetFlipRight(int desired);
+
+int GetVehicleType();
+
+int SetVehicleTypet(int desired);
+
+int InitConf();
 
 #endif

@@ -448,7 +448,7 @@ int main(int argc, char **argv)
 #if ENABLE_DMS
   InitDms(DMS_WORK_MODE, DMS_MODEL_PATH);
 #endif
-#if VEHICLE_TYPE == VEHICLE_TYPE_CHANGE_BATTERY
+#if CHASSIS_TYPE == CHASSIS_TYPE_CHANGE_BATTERY
   InitHardWare();
 #endif
 #if ENABLE_DISPLAYMODE_SWITCH
@@ -459,5 +459,6 @@ int main(int argc, char **argv)
   while (1)
   {
     usleep(100 * 1000);
+    LOGOUT_INFO("alive\n");
   }
 }

@@ -382,14 +382,14 @@ static void *SerialRxTask(void *arg) {
         //printf("num = %d\n",num);
         nread = min(num, (int)(sizeof(buf) / sizeof(buf[0])));
         ret = read(pollfd[0].fd, buf, nread);
-        // for(int kk  = 0;kk<num;++kk)
-        // {
-        //   if(num == 1)
-        //   {
-        //     printf("    ");
-        //   }
-        //   printf("data[%d] = %2x\n",kk,buf[kk]);
-        // }
+        for(int kk  = 0;kk<num;++kk)
+        {
+          if(num == 1)
+          {
+            printf("    ");
+          }
+          printf("data[%d] = %2x\n",kk,buf[kk]);
+        }
         if (ret > 0) {
           AddRxBuffer(p_ser_info, buf, ret);
         }

@@ -18,6 +18,7 @@
 #define CANFRAME_STEER (2)
 #define CANFRAME_GEAR (3)
 #define CANFRAME_TURN (4)
+#define CANFRAME_SPEED (5)
 
 
 
@@ -90,7 +91,7 @@ int32_t UpdateGear(uint8_t canmsg[])
   int ret = 0;
   int gear = GEAR_OTHERS;
   //printf("%x %x %x %x %x %x %x %x\n",canmsg[0],canmsg[1],canmsg[2],canmsg[3],canmsg[4],canmsg[5],canmsg[6],canmsg[7]);
-#if VEHICLE_TYPE == VEHICLE_TYPE_CHANGE_BATTERY
+#if CHASSIS_TYPE == CHASSIS_TYPE_CHANGE_BATTERY
   if(canmsg[3] >= 0 && canmsg[3]<=0x7C)
   {
     gear = GEAR_REVERSE;
@@ -108,7 +109,7 @@ int32_t UpdateGear(uint8_t canmsg[])
     gear = GEAR_PARK;
   }
 #endif
-#if VEHICLE_TYPE == VEHICLE_TYPE_FUEL
+#if CHASSIS_TYPE == CHASSIS_TYPE_FUEL
   if(0x1u & canmsg[2])
   {
     gear = GEAR_NEURAL;
@@ -133,7 +134,7 @@ int32_t UpdateTurn(uint8_t canmsg[])
   int ret = 0;
   int turn = TURN_NORMAL;
   //printf("%x %x %x %x %x %x %x %x\n",canmsg[0],canmsg[1],canmsg[2],canmsg[3],canmsg[4],canmsg[5],canmsg[6],canmsg[7]);
-#if VEHICLE_TYPE == VEHICLE_TYPE_CHANGE_BATTERY
+#if CHASSIS_TYPE == CHASSIS_TYPE_CHANGE_BATTERY
   if(canmsg[1] & 0x10)
   {
     turn = TURN_RIGHT;
@@ -143,7 +144,7 @@ int32_t UpdateTurn(uint8_t canmsg[])
     turn = TURN_LEFT;
   }
 #endif
-#if VEHICLE_TYPE == VEHICLE_TYPE_FUEL
+#if CHASSIS_TYPE == CHASSIS_TYPE_FUEL
   if(canmsg[1] & 0x02u)
   {
     turn = TURN_RIGHT;
@@ -161,7 +162,7 @@ int32_t UpdateTurn(uint8_t canmsg[])
 int32_t ParseCANID(uint8_t *canid)
 {
   //printf("%x %x %x %x\n",canid[0],canid[1],canid[2],canid[3]);
-#if VEHICLE_TYPE == VEHICLE_TYPE_CHANGE_BATTERY
+#if CHASSIS_TYPE == CHASSIS_TYPE_CHANGE_BATTERY
 #if BSD_TYPE == BSD_TYPE_CT
   if(canid[0] == 0x00 && canid[1] == 0x00 && canid[2] == 0x07 && canid[3] == 0xB5)
   {
@@ -181,7 +182,7 @@ int32_t ParseCANID(uint8_t *canid)
     return CANFRAME_TURN;
   }
 #endif
-#if VEHICLE_TYPE == VEHICLE_TYPE_FUEL
+#if CHASSIS_TYPE == CHASSIS_TYPE_FUEL
   if(canid[0] == 0x00 && canid[1] == 0x00 && canid[2] == 0x07 && canid[3] == 0xF1)
   {
     return CANFRAME_GEAR;
@@ -190,11 +191,15 @@ int32_t ParseCANID(uint8_t *canid)
   {
     return CANFRAME_TURN;
   }
+  if(canid[0] == 0x00 && canid[1] == 0x00 && canid[2] == 0x07 && canid[3] == 0xF3)
+  {
+    return CANFRAME_SPEED;
+  }
 #endif
   return CANFRAME_UNUSED;
 }
 
-#if VEHICLE_TYPE == VEHICLE_TYPE_FUEL
+#if CHASSIS_TYPE == CHASSIS_TYPE_FUEL
 
 #endif
 
@@ -219,6 +224,9 @@ int32_t UpdateCANFrameInfo(uint8_t *dtin)
       break;
     case CANFRAME_TURN:
       UpdateTurn(p);
+      break;
+    case CANFRAME_SPEED:
+      //printf("***************************%x %x\n",p[6],p[7]);
       break;
     default:
       break;
@@ -319,6 +327,12 @@ int32_t ParseMcuSerialMsg(uint8_t *dtin, uint8_t *dtout) {
         ret = EncodeJimuOutCommand(dtout, MCU_FORWARD_REPLY_CMD, header->dt,
                                    header->len - 5);
         AddTxBuffer(CCS_SER_IDX, dtout, ret);
+        if(dtout[10]==0xF3)
+        {
+          for(int i  = 0;i<23;++i)
+            printf("%x ",dtout[i]);
+          printf("\n");
+        }
 #endif
         break;
 
