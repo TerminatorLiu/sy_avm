@@ -1,11 +1,11 @@
 #ifndef _SY_APP_RENDER_H
 #define _SY_APP_RENDER_H
-
+#include "conf.h"
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#include "conf.h"
+
 int InitOpenglesWindows();
 int InitWindow();
 void RenderWindow(struct render_parameter *param);

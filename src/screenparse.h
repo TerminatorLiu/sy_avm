@@ -10,7 +10,9 @@
 #define FILE_TRANSFORM_CMD      (0xEE)
 #define FILE_MD5CHECKSUM_CMD    (0xFF)
 
-#define SAVE_IMAGE              (0xA0)
+#define SAVE_IMAGE_CMD          (0xA0)
+#define SWITCH_VECHICLE_CMD     (0xA1)
+#define FILP_CAMERA_CMD         (0xA2)
 
 #define SCREEN_PARSE_SYNC1 (0xAA)
 #define SCREEN_PARSE_SYNC2 (0x55)

@@ -33,6 +33,10 @@
 #define WIDVPBE 1280
 #define HEIVPBE 720
 
+#define COEFFS_NUM      4
+#define COEFFS_LEN      6
+#define CAR_FILE_PATH_LEN      128
+
 typedef struct _vec2 {
   float x;
   float y;
@@ -62,6 +66,8 @@ typedef struct _Parking_Assistant_Params {
   int car_world_x2;
   int car_world_y;
   int car_world_y2;
+  unsigned char car_name[CAR_FILE_PATH_LEN];
+  float coeff[COEFFS_NUM][COEFFS_LEN];
 } Parking_Assistant_Params;
 
 typedef struct _textureCoords {

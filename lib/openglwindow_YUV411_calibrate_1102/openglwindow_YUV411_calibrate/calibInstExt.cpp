@@ -62,34 +62,21 @@ int run_calib_InstExt(const CvMat* img_src,const CvSeq* image_points_seq,CvMat* 
 
 	int center_x =( WIDVPFE>>2),center_y = (HEIVPFE>>2);
 
+	fx = 0.5 * parking_assistant_params.coeff[cam_id][0];
+	fy = 0.5 * parking_assistant_params.coeff[cam_id][1];
+			
+	_dist_coeffs[0]   = parking_assistant_params.coeff[cam_id][2];
+	_dist_coeffs[1]   = parking_assistant_params.coeff[cam_id][3];
+	_dist_coeffs[2]   = parking_assistant_params.coeff[cam_id][4];
+	_dist_coeffs[3]   = parking_assistant_params.coeff[cam_id][5];
 
-	if(cam_id < 2)
-    {	
-        fx = 198.185;
-        fy = 195.247;
-				
-        _dist_coeffs[0]   = 0.0290121;
-        _dist_coeffs[1]   =  -0.0102488;
-        _dist_coeffs[2]   =  -0.00374643;
-        _dist_coeffs[3]   = 0.000431271;
-    }
-    else
-    {
-        fx = 426.95049171315713 / 2;
-        fy = 422.51206653627668 / 2;
-
-        _dist_coeffs[0]   = -0.021531949583269129;
-        _dist_coeffs[1]   =  -0.0033619676470765807;
-        _dist_coeffs[2]   =  0.0025146098463850689;
-        _dist_coeffs[3]   =  -0.0015286632382554609;
-    }
 	_camera[0] = fx;
 	_camera[4] = fy;
 	_camera[2] = center_x;
 	_camera[5] = center_y;
 
 
-	printf("\ncam[%d] run_calib_InstExt ******************* %d %d %d\n",cam_id, parking_assistant_params.car_length, parking_assistant_params.car_width, parking_assistant_params.LRchess2carFront_distance);
+	printf("cam[%d] run_calib_InstExt ******************* %d %d %d\n",cam_id, parking_assistant_params.car_length, parking_assistant_params.car_width, parking_assistant_params.LRchess2carFront_distance);
 
 	cvSet(obj_FullPoints,cvScalar(0.,0.,-10000.),0);
 
@@ -102,11 +89,12 @@ int run_calib_InstExt(const CvMat* img_src,const CvSeq* image_points_seq,CvMat* 
 		//pts_img[i].x +=pts_img[i].x;
 		//pts_img[i].y +=pts_img[i].y;
 	}
-	searchSubSquareCorners2(img_src,cvSize(7,7),pts_img,point_count  );
+    searchSubSquareCorners2(img_src,cvSize(7,7),pts_img,point_count  );
 	for(i = 0; i< point_count; i++)
 	{
 		pts_img[i].x *= 0.5;
 		pts_img[i].y *= 0.5;
+        //printf("img = %f %f\n", pts_img[i].x, pts_img[i].y);
 	}
 #endif
 	//2. get the extrinsic parameter of Camera
@@ -121,9 +109,9 @@ int run_calib_InstExt(const CvMat* img_src,const CvSeq* image_points_seq,CvMat* 
 	initObjectPoints(obj_FullPoints,output_full_size,cam_id,parking_assistant_params,real2pix_ratio,0);
 	cvProjectPoints_fisheyeD1(obj_FullPoints,rot_vects,trans_vects,&camera,&dist_coeffs0,project_Points,NULL,NULL,NULL,NULL,NULL);			
 	interpolate_image(img_src,output_full_size,img_rectify0,project_Points);
-	
 	// find the square0 corners	
-	found0 = cvFindSquareCorners( img_rectify0, square0, parking_assistant_params, real2pix_ratio,cam_id ,0);		
+	found0 = cvFindSquareCorners( img_rectify0, square0, parking_assistant_params, real2pix_ratio,cam_id ,0);	
+
 	//*************project square1***************
 	initObjectPoints(obj_FullPoints,output_full_size,cam_id,parking_assistant_params,real2pix_ratio,1);
 	cvProjectPoints_fisheyeD1(obj_FullPoints,rot_vects,trans_vects,&camera,&dist_coeffs0,project_Points,NULL,NULL,NULL,NULL,NULL);

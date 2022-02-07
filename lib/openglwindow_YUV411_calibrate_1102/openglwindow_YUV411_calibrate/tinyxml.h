@@ -80,6 +80,15 @@ const int TIXML_MAJOR_VERSION = 2;
 const int TIXML_MINOR_VERSION = 6;
 const int TIXML_PATCH_VERSION = 2;
 
+typedef enum _eSdXmlType
+{
+    SD_XML_PP_TYPE_UINT8 = 0,
+    SD_XML_PP_TYPE_UINT32,
+    SD_XML_PP_TYPE_STRING,
+    SD_XML_PP_TYPE_FLOAT,
+    SD_XML_PP_TYPE_ALL
+} eSdXmlType;
+
 /*	Internal structure for tracking location of items
         in the XML file.
 */

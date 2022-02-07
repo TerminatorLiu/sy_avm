@@ -439,7 +439,7 @@ int cvFindChessboardCorners_ext( const void* arr, CvSize pattern_size,
 
 					// If count is more than it should be, this will remove those quads
 					// which cause maximum deviation from a nice square pattern.
-					CV_CALL( q_count = icvCleanFoundConnectedQuads( q_count, quad_group, pattern_size ));
+                    CV_CALL( q_count = icvCleanFoundConnectedQuads( q_count, quad_group, pattern_size ));
 					CV_CALL( count = icvCheckQuadGroup( quad_group, q_count, corner_group, pattern_size ));
 
 					lost_count = pattern_size.width * pattern_size.height -abs(count);
@@ -649,10 +649,10 @@ int cvFindSquareCorners( const void* arr, CvPoint2D32f *square0, Parking_Assista
 		dist0 = sqrt((idea_cx0 - quads_cx)*(idea_cx0 - quads_cx)
 				   + (idea_cy0 - quads_cy)*(idea_cy0 - quads_cy));
 
-		printf("dist0 = %f\n", dist0);
+		//printf("dist0 = %f\n", dist0);
 		if ( dist0 < min_dist0 )
 		{
-			printf("near square quads[%d].edge_len: %f\n",i,quads[i].edge_len);
+			//printf("near square quads[%d].edge_len: %f\n",i,quads[i].edge_len);
 			if (quads[i].edge_len > min_edge_len && quads[i].edge_len < max_edge_len ) 
 			{
 				min_dist0 = dist0;
@@ -661,7 +661,7 @@ int cvFindSquareCorners( const void* arr, CvPoint2D32f *square0, Parking_Assista
 			}					
 		}			
 	}
-	printf("min_dist0 = %f thresh = %f\n",min_dist0, (200.0/real2pix_ratio));
+	//printf("min_dist0 = %f thresh = %f\n",min_dist0, (200.0/real2pix_ratio));
 	if(min_dist0 < (200.0/real2pix_ratio))
 	{
 		found =1;

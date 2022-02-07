@@ -44,12 +44,12 @@ mount -t nfs -o nolock 192.168.1.101:/home/lt/liutao_mnt /liutao_mnt
 #define REV_RADAR_SHUNHE (1) 
 #define ENABLE_DISPLAYMODE_SWITCH (0)
 #define ENABLE_ROTATE (0)
-#define DISABLE_LEFT_FLIP (0)
-#define ENABLE_LEFT_FLIP (1)
-#define DISABLE_RIGHT_FLIP (0)
-#define ENABLE_RIGHT_FLIP (1)
+#define DISABLE_FLIP (0)
+#define ENABLE_FLIP (1)
 #define VECHICLE_TYPE_DUMP (0)
 #define VECHICLE_TYPE_MIXER (1)
+#define VECHICLE_TYPE_DUMP_IMAGE_NAME "dump.png"
+#define VECHICLE_TYPE_MIXER_IMAGE_NAME "mixer.png"
 #define ENABLE_DMS (0)
 #if CHASSIS_TYPE == CHASSIS_TYPE_FUEL
 #define CAMERA_BACK_DEV "/dev/video0"
@@ -139,7 +139,13 @@ int SetFlipRight(int desired);
 
 int GetVehicleType();
 
-int SetVehicleTypet(int desired);
+int SetVehicleType(int desired);
+
+int SetVehicleImageNeedUpdate();
+
+int ResetVehicleImageNeedUpdate();
+
+int VehicleImageNeedUpdate();
 
 int InitConf();
 

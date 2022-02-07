@@ -16,7 +16,6 @@
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
-
 struct vin_interface g_vin_conf[] = {
 #ifdef SCREEN_ROTATE
     {.fd = -1, .devname = CAMERA_FRONT_DEV},
@@ -334,7 +333,7 @@ void ProcessFrame()
         g_sync_flag.flag |= 1 << i;
         if (save_image && !(save_flag & (1 << i)))
         {
-          if(save_flag == 0)
+          if (save_flag == 0)
           {
             system("rm -rf *.png");
             system("rm -rf *.YUV");
@@ -429,13 +428,13 @@ int main(int argc, char **argv)
   InitLogBuffer(DEBUG_LEVEL);
   InitTimer(LOG_PER_PERIOD);
   InitYuvFlipBuffer();
-  if ((argc > 1) && (strncmp(argv[1], "-t", 2) == 0))
-  {
-    g_yuv_org_flag = 1;
-    g_yuv_org_data = InitYuvFromFile(YUV_FRONT_FILE_NAME, YUV_BACK_FILE_NAME,
-                                     YUV_LEFT_FILE_NAME, YUV_RIGHT_FILE_NAME);
-    printf("load calirate test file\r\n");
-  }
+  // if ((argc > 1) && (strncmp(argv[1], "-t", 2) == 0))
+  // {
+  //   g_yuv_org_flag = 1;
+  //   g_yuv_org_data = InitYuvFromFile(YUV_FRONT_FILE_NAME, YUV_BACK_FILE_NAME,
+  //                                    YUV_LEFT_FILE_NAME, YUV_RIGHT_FILE_NAME);
+  //   printf("load calirate test file\r\n");
+  // }
 
   InstallSignalHandler();
   InitCANFrameInfo();

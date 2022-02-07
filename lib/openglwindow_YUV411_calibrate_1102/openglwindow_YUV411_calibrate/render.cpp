@@ -19,12 +19,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-
-
-#define TEXTURE(N) "texture"#N
-#define ADJUST(N) "color"#N"Adjust"
-
-
+#define TEXTURE(N) "texture" #N
+#define ADJUST(N) "color" #N "Adjust"
 
 static int h_program_handle[5];
 
@@ -57,228 +53,204 @@ vec3 vertices_rear_traj_line_point[11][LENGTH * 2];
 safImgRect front_resizer;
 safImgRect rear_resizer;
 
-
-GLuint BindTexture(GLuint texture, unsigned char *buffer, GLuint w , GLuint h, GLint type)
+GLuint BindTexture(GLuint texture, unsigned char *buffer, GLuint w, GLuint h, GLint type)
 {
-    glBindTexture ( GL_TEXTURE_2D, texture );
-    glTexImage2D ( GL_TEXTURE_2D, 0, type, w, h, 0, type, GL_UNSIGNED_BYTE, buffer);
-    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, type, w, h, 0, type, GL_UNSIGNED_BYTE, buffer);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     return texture;
 }
 
-
-
 const char vertex_source[] =
-{
-    "#version 300 es						  \n"
-    "layout(location = 0) in vec3 iVexPos;              \n"
-    "layout(location = 1) in vec2 iTexPos;              \n"
-    "layout(location = 2) in float iCoeff;              \n"
-    "uniform mat4 mvp;                        \n"
-    "smooth centroid out vec2 gTexPos;                \n"
-    "out float vCoeff;                \n"
-    "void main()                            \n"
-    "{                                        \n"
-    "    gTexPos = iTexPos;           \n"
-    "    vCoeff = iCoeff;           \n"
-    "    gl_Position = mvp * vec4(iVexPos, 1.0);     \n"
-    "}                                        \n"
-};
-
-
-
-
+    {
+        "#version 300 es						  \n"
+        "layout(location = 0) in vec3 iVexPos;              \n"
+        "layout(location = 1) in vec2 iTexPos;              \n"
+        "layout(location = 2) in float iCoeff;              \n"
+        "uniform mat4 mvp;                        \n"
+        "smooth centroid out vec2 gTexPos;                \n"
+        "out float vCoeff;                \n"
+        "void main()                            \n"
+        "{                                        \n"
+        "    gTexPos = iTexPos;           \n"
+        "    vCoeff = iCoeff;           \n"
+        "    gl_Position = mvp * vec4(iVexPos, 1.0);     \n"
+        "}                                        \n"};
 
 const char fragment_source[] =
-{
-    "#version 300 es						  \n"
-    "precision mediump float;                                      \n"
-    "uniform sampler2D textureY;                               \n"
-    "uniform sampler2D textureU;                              \n"
-    "uniform sampler2D textureV;                              \n"
-    "uniform vec3 color0Adjust;                                   \n"
-    "uniform vec3 color1Adjust;                                   \n"
-    "smooth centroid in vec2 gTexPos;                        \n"
-    "in float vCoeff;                					 	 \n"
-    "out vec4 fragColor;                          				 \n"
-    "void main()                                                 \n"
-    "{                                                           \n"
-    "    vec3 yuv;                                       \n"
-    "    vec3 rgb;                                       \n"
-    "    float lumia = texture(textureY, gTexPos).r;     \n"
-    "    float cr = texture(textureU, gTexPos).r - 0.5; \n"
-    "	 float cb = texture(textureV, gTexPos).r - 0.5; \n"
-    "	 yuv = vec3(lumia, cb, cr);                              \n"
-    "	 rgb = yuv * mat3(1, 1.779, 0,                           \n"
-    "                     1, -0.3455, -0.7169,                   \n"
-    "                     1, 0, 1.4075);                         \n"
-    "  	 vec3 gain = color0Adjust * (1.0 - vCoeff) + color1Adjust * vCoeff;      \n"
-    "    fragColor = vec4(rgb + gain, 1.0);        \n"
-    "}                                                           \n"
+    {
+        "#version 300 es						  \n"
+        "precision mediump float;                                      \n"
+        "uniform sampler2D textureY;                               \n"
+        "uniform sampler2D textureU;                              \n"
+        "uniform sampler2D textureV;                              \n"
+        "uniform vec3 color0Adjust;                                   \n"
+        "uniform vec3 color1Adjust;                                   \n"
+        "smooth centroid in vec2 gTexPos;                        \n"
+        "in float vCoeff;                					 	 \n"
+        "out vec4 fragColor;                          				 \n"
+        "void main()                                                 \n"
+        "{                                                           \n"
+        "    vec3 yuv;                                       \n"
+        "    vec3 rgb;                                       \n"
+        "    float lumia = texture(textureY, gTexPos).r;     \n"
+        "    float cr = texture(textureU, gTexPos).r - 0.5; \n"
+        "	 float cb = texture(textureV, gTexPos).r - 0.5; \n"
+        "	 yuv = vec3(lumia, cb, cr);                              \n"
+        "	 rgb = yuv * mat3(1, 1.779, 0,                           \n"
+        "                     1, -0.3455, -0.7169,                   \n"
+        "                     1, 0, 1.4075);                         \n"
+        "  	 vec3 gain = color0Adjust * (1.0 - vCoeff) + color1Adjust * vCoeff;      \n"
+        "    fragColor = vec4(rgb + gain, 1.0);        \n"
+        "}                                                           \n"
 
 };
 
 const char vertex_mosaic_source[] =
-{
-    "#version 300 es						  \n"
-    "layout(location = 0) in vec3 iVexPos;                      \n"
-    "layout(location = 1) in vec2 iTexPos1;                     \n"
-    "layout(location = 2) in vec2 iTexPos2;                     \n"
-    "layout(location = 3) in float iAlpha;                         \n"
-    "uniform mat4 mvp;                                              \n"
-    "smooth centroid out vec2 gTexPos1;                         \n"
-    "smooth centroid out vec2 gTexPos2;                         \n"
-    "out float gAlpha;                                         	\n"
-    "void main()                                                    \n"
-    "{                                                              \n"
-    "    gTexPos1 = iTexPos1;                               \n"
-    "    gTexPos2 = iTexPos2;                               \n"
-    "    gAlpha = iAlpha;                                         \n"
-    "    gl_Position = gl_Position = mvp * vec4(iVexPos, 1.0);                           \n"
-    "}                                                              \n"
-};
+    {
+        "#version 300 es						  \n"
+        "layout(location = 0) in vec3 iVexPos;                      \n"
+        "layout(location = 1) in vec2 iTexPos1;                     \n"
+        "layout(location = 2) in vec2 iTexPos2;                     \n"
+        "layout(location = 3) in float iAlpha;                         \n"
+        "uniform mat4 mvp;                                              \n"
+        "smooth centroid out vec2 gTexPos1;                         \n"
+        "smooth centroid out vec2 gTexPos2;                         \n"
+        "out float gAlpha;                                         	\n"
+        "void main()                                                    \n"
+        "{                                                              \n"
+        "    gTexPos1 = iTexPos1;                               \n"
+        "    gTexPos2 = iTexPos2;                               \n"
+        "    gAlpha = iAlpha;                                         \n"
+        "    gl_Position = gl_Position = mvp * vec4(iVexPos, 1.0);                           \n"
+        "}                                                              \n"};
 
 const char fragment_mosaic_source[] =
-{
-    "#version 300 es						  \n"
-    "precision mediump float;                                         \n"
-    "uniform sampler2D texture1Y;                               \n"
-    "uniform sampler2D texture1U;                              \n"
-    "uniform sampler2D texture1V;                              \n"
-    "uniform sampler2D texture2Y;                               \n"
-    "uniform sampler2D texture2U;                              \n"
-    "uniform sampler2D texture2V;                              \n"
-    "uniform vec3 color0Adjust;                                   \n"
-    "uniform vec3 color1Adjust;                                   \n"
-    "smooth centroid in vec2 gTexPos1;                          \n"
-    "smooth centroid in vec2 gTexPos2;                          \n"
-    "in float gAlpha;                                         		\n"
-    "out vec4 fragColor;                          					\n"
-    "void main()                                                    \n"
-    "{                                                              \n"
-    "    vec3 yuv1, yuv2;                                       \n"
-    "    vec3 rgb1, rgb2;                                       \n"
-    "    float lumia, cb, cr;                                       \n"
-    "    lumia = texture(texture1Y, gTexPos1).r;     \n"
-    "    cr = texture(texture1U, gTexPos1).r - 0.5; \n"
-    "	 cb= texture(texture1V, gTexPos1).r - 0.5; \n"
-    "	 yuv1 = vec3(lumia, cb, cr);                              \n"
-    "    lumia = texture(texture2Y, gTexPos2).r;     \n"
-    "    cr = texture(texture2U, gTexPos2).r - 0.5; \n"
-    "	 cb = texture(texture2V, gTexPos2).r - 0.5; \n"
-    "	 yuv2 = vec3(lumia, cb, cr);                              \n"
-    "	 rgb1 = yuv1 * mat3(1, 1.779, 0,                           \n"
-    "                     1, -0.3455, -0.7169,                   \n"
-    "                     1, 0, 1.4075);                         \n"
-    "	 rgb2 = yuv2 * mat3(1, 1.779, 0,                           \n"
-    "                     1, -0.3455, -0.7169,                   \n"
-    "                     1, 0, 1.4075);                         \n"
-    "    fragColor = vec4(mix(rgb1 + color0Adjust, rgb2 + color1Adjust, gAlpha), 1.0);\n"
-    "}                                                              \n"
-};
-
+    {
+        "#version 300 es						  \n"
+        "precision mediump float;                                         \n"
+        "uniform sampler2D texture1Y;                               \n"
+        "uniform sampler2D texture1U;                              \n"
+        "uniform sampler2D texture1V;                              \n"
+        "uniform sampler2D texture2Y;                               \n"
+        "uniform sampler2D texture2U;                              \n"
+        "uniform sampler2D texture2V;                              \n"
+        "uniform vec3 color0Adjust;                                   \n"
+        "uniform vec3 color1Adjust;                                   \n"
+        "smooth centroid in vec2 gTexPos1;                          \n"
+        "smooth centroid in vec2 gTexPos2;                          \n"
+        "in float gAlpha;                                         		\n"
+        "out vec4 fragColor;                          					\n"
+        "void main()                                                    \n"
+        "{                                                              \n"
+        "    vec3 yuv1, yuv2;                                       \n"
+        "    vec3 rgb1, rgb2;                                       \n"
+        "    float lumia, cb, cr;                                       \n"
+        "    lumia = texture(texture1Y, gTexPos1).r;     \n"
+        "    cr = texture(texture1U, gTexPos1).r - 0.5; \n"
+        "	 cb= texture(texture1V, gTexPos1).r - 0.5; \n"
+        "	 yuv1 = vec3(lumia, cb, cr);                              \n"
+        "    lumia = texture(texture2Y, gTexPos2).r;     \n"
+        "    cr = texture(texture2U, gTexPos2).r - 0.5; \n"
+        "	 cb = texture(texture2V, gTexPos2).r - 0.5; \n"
+        "	 yuv2 = vec3(lumia, cb, cr);                              \n"
+        "	 rgb1 = yuv1 * mat3(1, 1.779, 0,                           \n"
+        "                     1, -0.3455, -0.7169,                   \n"
+        "                     1, 0, 1.4075);                         \n"
+        "	 rgb2 = yuv2 * mat3(1, 1.779, 0,                           \n"
+        "                     1, -0.3455, -0.7169,                   \n"
+        "                     1, 0, 1.4075);                         \n"
+        "    fragColor = vec4(mix(rgb1 + color0Adjust, rgb2 + color1Adjust, gAlpha), 1.0);\n"
+        "}                                                              \n"};
 
 const char vertex_blend_source[] =
-{
-    "#version 300 es										\n"
-    "layout(location = 0) in vec3 vPosition;			  \n"
-    "uniform mat4 mvp;										\n"
-    "void main()											\n"
-    "{														\n"
-    "	 gl_Position = mvp * vec4(vPosition, 1.0);		 \n"
-    "}														\n"
-};
+    {
+        "#version 300 es										\n"
+        "layout(location = 0) in vec3 vPosition;			  \n"
+        "uniform mat4 mvp;										\n"
+        "void main()											\n"
+        "{														\n"
+        "	 gl_Position = mvp * vec4(vPosition, 1.0);		 \n"
+        "}														\n"};
 
 const char fragment_blend_source[] =
-{
-    "#version 300 es											\n"
-    "precision mediump float; 									\n"
-    "uniform vec4 outColor; 					  \n"
-    "out vec4 fragColor;										\n"
-    "void main()												\n"
-    "{															\n"
-    "	 fragColor = outColor;			\n"
-    "}															\n"
-};
-
-
+    {
+        "#version 300 es											\n"
+        "precision mediump float; 									\n"
+        "uniform vec4 outColor; 					  \n"
+        "out vec4 fragColor;										\n"
+        "void main()												\n"
+        "{															\n"
+        "	 fragColor = outColor;			\n"
+        "}															\n"};
 
 const char vertex_bmp_show_source[] =
-{
-    "#version 300 es						  				\n"
-    "layout(location = 0) in vec3 iVexPos;              \n"
-    "layout(location = 1) in vec2 iTexPos;              \n"
-    "uniform mat4 mvp;                        				\n"
-    "smooth centroid out vec2 gTexPos;                	\n"
-    "void main()                              				\n"
-    "{                                        				\n"
-    "    gTexPos = iTexPos;           				\n"
-    "    gl_Position = mvp * vec4(iVexPos, 1.0);     				\n"
-    "}                                        				\n"
-};
+    {
+        "#version 300 es						  				\n"
+        "layout(location = 0) in vec3 iVexPos;              \n"
+        "layout(location = 1) in vec2 iTexPos;              \n"
+        "uniform mat4 mvp;                        				\n"
+        "smooth centroid out vec2 gTexPos;                	\n"
+        "void main()                              				\n"
+        "{                                        				\n"
+        "    gTexPos = iTexPos;           				\n"
+        "    gl_Position = mvp * vec4(iVexPos, 1.0);     				\n"
+        "}                                        				\n"};
 
 const char fragment_bmp_show_source[] =
-{
-    "#version 300 es						  					\n"
-    "precision mediump float;                                     \n"
-    "uniform sampler2D textureImg;                            \n"
-    "smooth centroid in vec2 gTexPos;                       \n"
-    "out vec4 fragColor;                          				\n"
-    "void main()                                                \n"
-    "{                                                          \n"
-    "    fragColor = texture(textureImg, gTexPos);       	\n"
-    "}                                                          \n"
-};
-
+    {
+        "#version 300 es						  					\n"
+        "precision mediump float;                                     \n"
+        "uniform sampler2D textureImg;                            \n"
+        "smooth centroid in vec2 gTexPos;                       \n"
+        "out vec4 fragColor;                          				\n"
+        "void main()                                                \n"
+        "{                                                          \n"
+        "    fragColor = texture(textureImg, gTexPos);       	\n"
+        "}                                                          \n"};
 
 const char vertex_camera_source[] =
-{
-    "#version 300 es						  \n"
-    "layout(location = 0) in vec3 iVexPos;              \n"
-    "layout(location = 1) in vec2 iTexPos;              \n"
-    "uniform mat4 mvp;                        \n"
-    "smooth centroid out vec2 gTexPos;                \n"
-    "void main()                            \n"
-    "{                                        \n"
-    "    gTexPos = iTexPos;           \n"
-    "    gl_Position = mvp * vec4(iVexPos, 1.0);     \n"
-    "}                                        \n"
-};
+    {
+        "#version 300 es						  \n"
+        "layout(location = 0) in vec3 iVexPos;              \n"
+        "layout(location = 1) in vec2 iTexPos;              \n"
+        "uniform mat4 mvp;                        \n"
+        "smooth centroid out vec2 gTexPos;                \n"
+        "void main()                            \n"
+        "{                                        \n"
+        "    gTexPos = iTexPos;           \n"
+        "    gl_Position = mvp * vec4(iVexPos, 1.0);     \n"
+        "}                                        \n"};
 
 const char fragment_camera_source[] =
-{
-    "#version 300 es						  \n"
-    "precision mediump float;                                      \n"
-    "uniform sampler2D textureY;                               \n"
-    "uniform sampler2D textureU;                              \n"
-    "uniform sampler2D textureV;                              \n"
-    "smooth centroid in vec2 gTexPos;                        \n"
-    "in float vCoeff;                					 	 \n"
-    "out vec4 fragColor;                          				 \n"
-    "void main()                                                 \n"
-    "{                                                           \n"
-    "    vec3 yuv;                                       \n"
-    "    vec3 rgb;                                       \n"
-    "    float lumia = texture(textureY, gTexPos).r;     \n"
-    "    float cr = texture(textureU, gTexPos).r - 0.5; \n"
-    "	 float cb= texture(textureV, gTexPos).r - 0.5; \n"
-    "	 yuv = vec3(lumia, cb, cr);                              \n"
-    "	 rgb = yuv * mat3(1, 1.779, 0,                           \n"
-    "                     1, -0.3455, -0.7169,                   \n"
-    "                     1, 0, 1.4075);                         \n"
-    "    fragColor = vec4(rgb , 1.0);        \n"
-    "}                                                           \n"
+    {
+        "#version 300 es						  \n"
+        "precision mediump float;                                      \n"
+        "uniform sampler2D textureY;                               \n"
+        "uniform sampler2D textureU;                              \n"
+        "uniform sampler2D textureV;                              \n"
+        "smooth centroid in vec2 gTexPos;                        \n"
+        "in float vCoeff;                					 	 \n"
+        "out vec4 fragColor;                          				 \n"
+        "void main()                                                 \n"
+        "{                                                           \n"
+        "    vec3 yuv;                                       \n"
+        "    vec3 rgb;                                       \n"
+        "    float lumia = texture(textureY, gTexPos).r;     \n"
+        "    float cr = texture(textureU, gTexPos).r - 0.5; \n"
+        "	 float cb= texture(textureV, gTexPos).r - 0.5; \n"
+        "	 yuv = vec3(lumia, cb, cr);                              \n"
+        "	 rgb = yuv * mat3(1, 1.779, 0,                           \n"
+        "                     1, -0.3455, -0.7169,                   \n"
+        "                     1, 0, 1.4075);                         \n"
+        "    fragColor = vec4(rgb , 1.0);        \n"
+        "}                                                           \n"
 
 };
-
-
-
-
-
 
 void CaculateColorCoeff2D(unsigned char **image_buffer)
 {
@@ -293,10 +265,10 @@ void CaculateColorCoeff2D(unsigned char **image_buffer)
     static unsigned int run_count = 0;
     int index;
 
-    if ( (NULL == image_buffer[0]) || (NULL == image_buffer[1]) || (NULL == image_buffer[2]) || (NULL == image_buffer[3]) )
+    if ((NULL == image_buffer[0]) || (NULL == image_buffer[1]) || (NULL == image_buffer[2]) || (NULL == image_buffer[3]))
     {
         /*check image address*/
-        return ;
+        return;
     }
 
     index = run_count % AVERAGE_COUNT;
@@ -304,7 +276,7 @@ void CaculateColorCoeff2D(unsigned char **image_buffer)
     lumia_sum0 = 0;
     lumia_sum1 = 0;
 
-    for(i = 0; i < tex_coords_statistics.gl_tex_coord_fl_f.size(); ++i)
+    for (i = 0; i < tex_coords_statistics.gl_tex_coord_fl_f.size(); ++i)
     {
         index0 = tex_coords_statistics.gl_tex_coord_fl_f[i];
         lumia_sum0 += image_buffer[0][index0];
@@ -322,11 +294,10 @@ void CaculateColorCoeff2D(unsigned char **image_buffer)
     rgb_color[1].y = 1.0 * lumia_sum1 / count;
     rgb_color[1].z = 1.0 * lumia_sum1 / count;
 
-
     lumia_sum0 = 0;
     lumia_sum1 = 0;
 
-    for(i = 0; i < tex_coords_statistics.gl_tex_coord_fr_f.size(); ++i)
+    for (i = 0; i < tex_coords_statistics.gl_tex_coord_fr_f.size(); ++i)
     {
         index0 = tex_coords_statistics.gl_tex_coord_fr_f[i];
         lumia_sum0 += image_buffer[0][index0];
@@ -345,11 +316,10 @@ void CaculateColorCoeff2D(unsigned char **image_buffer)
     rgb_color[3].y = 1.0 * lumia_sum1 / count;
     rgb_color[3].z = 1.0 * lumia_sum1 / count;
 
-
     lumia_sum0 = 0;
     lumia_sum1 = 0;
 
-    for(i = 0; i < tex_coords_statistics.gl_tex_coord_bl_b.size(); ++i)
+    for (i = 0; i < tex_coords_statistics.gl_tex_coord_bl_b.size(); ++i)
     {
         index0 = tex_coords_statistics.gl_tex_coord_bl_b[i];
         lumia_sum0 += image_buffer[1][index0];
@@ -368,15 +338,13 @@ void CaculateColorCoeff2D(unsigned char **image_buffer)
     rgb_color[5].y = 1.0 * lumia_sum1 / count;
     rgb_color[5].z = 1.0 * lumia_sum1 / count;
 
-
     lumia_sum0 = 0;
     lumia_sum1 = 0;
 
-    for(i = 0; i < tex_coords_statistics.gl_tex_coord__br_b.size(); ++i)
+    for (i = 0; i < tex_coords_statistics.gl_tex_coord__br_b.size(); ++i)
     {
         index0 = tex_coords_statistics.gl_tex_coord__br_b[i];
         lumia_sum0 += image_buffer[1][index0];
-
 
         index1 = tex_coords_statistics.gl_tex_coord__br_r[i];
         lumia_sum1 += image_buffer[3][index1];
@@ -392,12 +360,12 @@ void CaculateColorCoeff2D(unsigned char **image_buffer)
     rgb_color[7].y = 1.0 * lumia_sum1 / count;
     rgb_color[7].z = 1.0 * lumia_sum1 / count;
 
-    for(i = 0; i < 8; ++i)
+    for (i = 0; i < 8; ++i)
     {
         color_ave[i].x = rgb_color[i].x / 255.0;
         color_ave[i].y = rgb_color[i].y / 255.0;
         color_ave[i].z = rgb_color[i].z / 255.0;
-       // printf("color_ave[%d] = %f %f %f\n",i,color_ave[i].x,color_ave[i].y,color_ave[i].z);
+        // printf("color_ave[%d] = %f %f %f\n",i,color_ave[i].x,color_ave[i].y,color_ave[i].z);
     }
 
     color_ave[8].x = (color_ave[0].x + color_ave[1].x) / 2;
@@ -415,9 +383,7 @@ void CaculateColorCoeff2D(unsigned char **image_buffer)
     color_ave[11].x = (color_ave[6].x + color_ave[7].x) / 2;
     color_ave[11].y = (color_ave[6].y + color_ave[7].y) / 2;
     color_ave[11].z = (color_ave[6].z + color_ave[7].z) / 2;
-
 }
-
 
 extern "C" void imageFilp(unsigned char *src, unsigned char *dst)
 {
@@ -447,6 +413,59 @@ extern "C" void imageFilp(unsigned char *src, unsigned char *dst)
     //cvFlip(&srcV, &dstV, -1);
 }
 
+extern void UpdateCarImage(char car_name[])
+{
+    int width;
+    int height;
+    int channel;
+    unsigned char *res_buffer;
+
+    char file_path[256] = {0};
+    strcpy((char *)parking_assistant_params.car_name, car_name);
+    sprintf(file_path, "./test/%s", parking_assistant_params.car_name);
+    printf("file_path = %s res_buffer = %p\n", file_path, res_buffer);
+    res_buffer = stbi_load(file_path, &width, &height, &channel, 0);
+    printf("res_buffer = %p,w = %d, h = %d,c = %d\n", res_buffer, width, height, channel);
+    //memset(res_buffer, 0, width * height * channel);
+    //glGenTextures( 1, &texture_res[0]);
+    glBindTexture(GL_TEXTURE_2D, texture_res[0]);
+    if (channel == 4)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, res_buffer);
+    }
+    else
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, res_buffer);
+    }
+    free(res_buffer);
+}
+
+// void UpdateCarImage(int status)
+// {
+//     int width;
+//     int height;
+//     int channel;
+//     unsigned char *res_buffer;
+//     char file_path[256] = {0};
+
+//     //sprintf(file_path, "./test/%s", parking_assistant_params.car_name);
+//     if (status)
+//         res_buffer = stbi_load("./test/mixer.png", &width, &height, &channel, 0);
+//     else
+//         res_buffer = stbi_load("./test/dump.png", &width, &height, &channel, 0);
+
+//     printf("car = %x %d %d %d\n", res_buffer, width, height, channel);
+//     glBindTexture(GL_TEXTURE_2D, texture_res[0]);
+
+//     if (channel == 4)
+//     {
+//         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, res_buffer);
+//     }
+//     else
+//     {
+//         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, res_buffer);
+//     }
+// }
 
 void LoadRes(int w, int h)
 {
@@ -464,7 +483,7 @@ void LoadRes(int w, int h)
     char file_path[256] = {0};
     FILE *fp;
 
-    for(i = 0; i < 5; ++i)
+    for (i = 0; i < 5; ++i)
     {
         yuv_buffer[i] = (unsigned char *)malloc(w * h * 3 / 2);
         /*sprintf(file_path, "../test/b%d.YUV", i);
@@ -491,12 +510,22 @@ void LoadRes(int w, int h)
         BindTexture(texture_v[i], p_src_v, w / 2, h / 2, GL_LUMINANCE);
     }
 
-
     stbi_set_flip_vertically_on_load(0);
 
-    res_buffer[1] = stbi_load("./test/car.png", &width, &height, &channel, 0);
-    glGenTextures( 1, &texture_res[0]);
-    BindTexture(texture_res[0], res_buffer[1], width, height, GL_RGBA);
+    //res_buffer[1] = stbi_load("./test/car.png", &width, &height, &channel, 0);
+    sprintf(file_path, "./test/%s", parking_assistant_params.car_name);
+    res_buffer[1] = stbi_load(file_path, &width, &height, &channel, 0);
+
+    glGenTextures(1, &texture_res[0]);
+
+    if (channel == 4)
+    {
+        BindTexture(texture_res[0], res_buffer[1], width, height, GL_RGBA);
+    }
+    else
+    {
+        BindTexture(texture_res[0], res_buffer[1], width, height, GL_RGB);
+    }
 
     //pu8_cam_vir[0] = yuv_buffer[0];
     //pu8_cam_vir[1] = yuv_buffer[1];
@@ -506,57 +535,53 @@ void LoadRes(int w, int h)
     //cameraCalib(920, 310, 116);
 }
 
-
-
-GLuint EsLoadShader ( GLenum type, const char *shaderSrc )
+GLuint EsLoadShader(GLenum type, const char *shaderSrc)
 {
     GLuint shader;
     GLint compiled;
     char *infoLog;
 
     // Create the shader object
-    shader = glCreateShader ( type );
+    shader = glCreateShader(type);
 
-    if ( shader == 0 )
+    if (shader == 0)
     {
         return 0;
     }
 
     // Load the shader source
-    glShaderSource ( shader, 1, &shaderSrc, NULL );
+    glShaderSource(shader, 1, &shaderSrc, NULL);
 
     // Compile the shader
-    glCompileShader ( shader );
+    glCompileShader(shader);
 
     // Check the compile status
-    glGetShaderiv ( shader, GL_COMPILE_STATUS, &compiled );
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
 
-    if ( !compiled )
+    if (!compiled)
     {
         GLint infoLen = 0;
 
-        glGetShaderiv ( shader, GL_INFO_LOG_LENGTH, &infoLen );
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
 
-        if ( infoLen > 1 )
+        if (infoLen > 1)
         {
-            infoLog = (char *)malloc ( sizeof ( char ) * infoLen );
+            infoLog = (char *)malloc(sizeof(char) * infoLen);
 
-            glGetShaderInfoLog ( shader, infoLen, NULL, infoLog );
-            printf ( "Error compiling shader:\n%s\n", infoLog );
+            glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
+            printf("Error compiling shader:\n%s\n", infoLog);
 
-            free ( infoLog );
+            free(infoLog);
         }
 
-        glDeleteShader ( shader );
+        glDeleteShader(shader);
         return 0;
     }
 
     return shader;
-
 }
 
-
-GLuint EsLoadProgram ( const char *vertShaderSrc, const char *fragShaderSrc )
+GLuint EsLoadProgram(const char *vertShaderSrc, const char *fragShaderSrc)
 {
     GLuint vertexShader;
     GLuint fragmentShader;
@@ -565,73 +590,69 @@ GLuint EsLoadProgram ( const char *vertShaderSrc, const char *fragShaderSrc )
     char *infoLog;
 
     // Load the vertex/fragment shaders
-    vertexShader = EsLoadShader ( GL_VERTEX_SHADER, vertShaderSrc );
+    vertexShader = EsLoadShader(GL_VERTEX_SHADER, vertShaderSrc);
 
-    if ( vertexShader == 0 )
+    if (vertexShader == 0)
     {
         return 0;
     }
 
-    fragmentShader = EsLoadShader ( GL_FRAGMENT_SHADER, fragShaderSrc );
+    fragmentShader = EsLoadShader(GL_FRAGMENT_SHADER, fragShaderSrc);
 
-    if ( fragmentShader == 0 )
+    if (fragmentShader == 0)
     {
-        glDeleteShader ( vertexShader );
+        glDeleteShader(vertexShader);
         return 0;
     }
 
     // Create the program object
-    programObject = glCreateProgram ( );
+    programObject = glCreateProgram();
 
-    if ( programObject == 0 )
+    if (programObject == 0)
     {
         return 0;
     }
 
-    glAttachShader ( programObject, vertexShader );
-    glAttachShader ( programObject, fragmentShader );
+    glAttachShader(programObject, vertexShader);
+    glAttachShader(programObject, fragmentShader);
 
     // Link the program
-    glLinkProgram ( programObject );
+    glLinkProgram(programObject);
 
     // Check the link status
-    glGetProgramiv ( programObject, GL_LINK_STATUS, &linked );
+    glGetProgramiv(programObject, GL_LINK_STATUS, &linked);
 
-    if ( !linked )
+    if (!linked)
     {
         GLint infoLen = 0;
 
-        glGetProgramiv ( programObject, GL_INFO_LOG_LENGTH, &infoLen );
+        glGetProgramiv(programObject, GL_INFO_LOG_LENGTH, &infoLen);
 
-        if ( infoLen > 1 )
+        if (infoLen > 1)
         {
-            infoLog = (char *)malloc ( sizeof ( char ) * infoLen );
+            infoLog = (char *)malloc(sizeof(char) * infoLen);
 
-            glGetProgramInfoLog ( programObject, infoLen, NULL, infoLog );
-            printf ( "Error linking program:\n%s\n", infoLog );
+            glGetProgramInfoLog(programObject, infoLen, NULL, infoLog);
+            printf("Error linking program:\n%s\n", infoLog);
 
-            free ( infoLog );
+            free(infoLog);
         }
 
-        glDeleteProgram ( programObject );
+        glDeleteProgram(programObject);
         return 0;
     }
 
     // Free up no longer needed shader resources
-    glDeleteShader ( vertexShader );
-    glDeleteShader ( fragmentShader );
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
 
     return programObject;
 }
 
-
-
-
 static void SetBool(GLuint programId, const char *name, bool value)
 {
-    glUniform1i(glGetUniformLocation(programId, name), (int) value);
+    glUniform1i(glGetUniformLocation(programId, name), (int)value);
 }
-
 
 static void SetInt(GLuint programId, const char *name, int value)
 {
@@ -673,19 +694,14 @@ static void SetVec4(GLuint programId, const char *name, float x, float y, float 
     glUniform4f(glGetUniformLocation(programId, name), x, y, z, w);
 }
 
-
-
 static void SetMat4(GLuint programId, const char *name, ESMatrix mat)
 {
     glUniformMatrix4fv(glGetUniformLocation(programId, name), 1, GL_FALSE, &mat.m[0][0]);
 }
 
-
-
-
 void RotationMatrixToEulerAngle(float *R, float *alpha, float *beta, float *gamma)
 {
-    float sy = sqrt(R[7] * R[7] +  R[8] * R[8]);
+    float sy = sqrt(R[7] * R[7] + R[8] * R[8]);
 
     int singular = sy < 1e-6; // If
 
@@ -707,7 +723,6 @@ void RotationMatrixToEulerAngle(float *R, float *alpha, float *beta, float *gamm
     *beta = y;
     *gamma = z;
 }
-
 
 double TowFac(double *b)
 {
@@ -793,32 +808,27 @@ void InvertMatrix(double *src, double *dst)
     InvertArray(dst, t);
 }
 
-
-
 int InitShader(void)
 {
-    h_program_handle[0] = EsLoadProgram ( vertex_source, fragment_source );
-    h_program_handle[1] = EsLoadProgram ( vertex_mosaic_source, fragment_mosaic_source );
-    h_program_handle[2] = EsLoadProgram ( vertex_bmp_show_source, fragment_bmp_show_source );
-    h_program_handle[3] = EsLoadProgram ( vertex_blend_source, fragment_blend_source );
-    h_program_handle[4] = EsLoadProgram ( vertex_camera_source, fragment_camera_source );
+    h_program_handle[0] = EsLoadProgram(vertex_source, fragment_source);
+    h_program_handle[1] = EsLoadProgram(vertex_mosaic_source, fragment_mosaic_source);
+    h_program_handle[2] = EsLoadProgram(vertex_bmp_show_source, fragment_bmp_show_source);
+    h_program_handle[3] = EsLoadProgram(vertex_blend_source, fragment_blend_source);
+    h_program_handle[4] = EsLoadProgram(vertex_camera_source, fragment_camera_source);
 
     printf("%d %d %d %d %d\n", h_program_handle[0], h_program_handle[1], h_program_handle[2], h_program_handle[3], h_program_handle[4]);
 
     return GL_TRUE;
 }
 
-
-
 void Show2DCar()
 {
     vec3 color_adjust[2];
     ESMatrix matrix_MVP;
 
-    esMatrixLoadIdentity ( &matrix_MVP );
+    esMatrixLoadIdentity(&matrix_MVP);
 
     glViewport(g_all_view.x, g_all_view.y, g_all_view.width, g_all_view.height);
-
 
     glUseProgram(h_program_handle[0]);
 
@@ -859,7 +869,6 @@ void Show2DCar()
     SetInt(h_program_handle[0], TEXTURE(V), 2);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex_coords.glVertex_F.size());
-
 
     //back
     glBindBuffer(GL_ARRAY_BUFFER, vbo_mosaic_image.cam_vertices_points[1]);
@@ -954,7 +963,6 @@ void Show2DCar()
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex_coords.glVertex_R.size());
 
-
     glUseProgram(h_program_handle[1]);
 
     /* Enable attributes for position, color and texture coordinates etc. */
@@ -964,7 +972,6 @@ void Show2DCar()
     glEnableVertexAttribArray(3);
 
     SetMat4(h_program_handle[1], "mvp", matrix_MVP);
-
 
     //front  left
     glBindBuffer(GL_ARRAY_BUFFER, vbo_mosaic_image.alpha[0]);
@@ -1009,7 +1016,6 @@ void Show2DCar()
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex_coords.glVertex_FL.size());
 
-
     //front  right
     glBindBuffer(GL_ARRAY_BUFFER, vbo_mosaic_image.alpha[1]);
     glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 0, 0);
@@ -1019,7 +1025,6 @@ void Show2DCar()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_mosaic_image.fuse_fr_cam_texture_points[1]);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
 
     color_adjust[0].x = color_ave[9].x - color_ave[2].x;
     color_adjust[0].y = color_ave[9].y - color_ave[2].y;
@@ -1064,7 +1069,6 @@ void Show2DCar()
     glBindBuffer(GL_ARRAY_BUFFER, vbo_mosaic_image.fuse_bl_cam_texture_points[1]);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-
     color_adjust[0].x = color_ave[10].x - color_ave[4].x;
     color_adjust[0].y = color_ave[10].y - color_ave[4].y;
     color_adjust[0].z = color_ave[10].z - color_ave[4].z;
@@ -1097,7 +1101,6 @@ void Show2DCar()
     SetInt(h_program_handle[1], TEXTURE(2V), 5);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex_coords.glVertex_BL.size());
-
 
     //back  right
     glBindBuffer(GL_ARRAY_BUFFER, vbo_mosaic_image.alpha[3]);
@@ -1160,9 +1163,7 @@ void Show2DCar()
     SetInt(h_program_handle[1], "textureImg", 0);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
 }
-
 
 void DrawUndistortBackCurve(ESMatrix ortho_matrix)
 {
@@ -1172,7 +1173,6 @@ void DrawUndistortBackCurve(ESMatrix ortho_matrix)
     glUseProgram(h_program_handle[3]);
 
     SetMat4(h_program_handle[3], "mvp", ortho_matrix);
-
 
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
@@ -1197,7 +1197,6 @@ void DrawUndistortBackCurve(ESMatrix ortho_matrix)
         SetVec4(h_program_handle[3], "outColor", color[i]);
         glDrawArrays(GL_TRIANGLE_STRIP, i * 4, 4);
     }
-
 }
 
 vec2 Undistort(float i, float j, const float *A, const float *dist_coeffs, undistortParams params, double *inv_r)
@@ -1241,7 +1240,7 @@ vec2 Undistort(float i, float j, const float *A, const float *dist_coeffs, undis
     oldP3D[1] = inv_r[3] * p3D[0] + inv_r[4] * p3D[1] + inv_r[5] * p3D[2];
     oldP3D[2] = inv_r[6] * p3D[0] + inv_r[7] * p3D[1] + inv_r[8] * p3D[2];
 
-    if(oldP3D[2] > 0.001)
+    if (oldP3D[2] > 0.001)
     {
         x = oldP3D[0] / oldP3D[2];
         y = oldP3D[1] / oldP3D[2];
@@ -1262,7 +1261,7 @@ vec2 Undistort(float i, float j, const float *A, const float *dist_coeffs, undis
         theta8 = theta6 * theta2;
         theta_d = theta * (1 + k1 * theta2 + k2 * theta4 + p1 * theta6 + p2 * theta8);
 
-        if(r < 0.000001)
+        if (r < 0.000001)
         {
             xd = 0;
             yd = 0;
@@ -1275,8 +1274,8 @@ vec2 Undistort(float i, float j, const float *A, const float *dist_coeffs, undis
         }
 
         /*get pixel point*/
-        u  = fx * xd + cx;
-        v  = fy * yd + cy;
+        u = fx * xd + cx;
+        v = fy * yd + cy;
 
         if (u < 0)
         {
@@ -1309,52 +1308,47 @@ vec2 Undistort(float i, float j, const float *A, const float *dist_coeffs, undis
     return imgPoints;
 }
 
-
-
-
 void ShowSingleView(int view_mode, float wheel_angle)
 {
     int which_camera;
     int cnt;
     float vertices_view[] =
-    {
-        -1.0f, -1.0f, 0.0f,  // left-buttom
-        1.0f, -1.0f, 0.0f,	// right- buttom
-        -1.0f,	1.0f, 0.0f,   // right-top
-        1.0f,  1.0f, 0.0f,	 // left-top
-    };
-
+        {
+            -1.0f, -1.0f, 0.0f, // left-buttom
+            1.0f, -1.0f, 0.0f,  // right- buttom
+            -1.0f, 1.0f, 0.0f,  // right-top
+            1.0f, 1.0f, 0.0f,   // left-top
+        };
 
     float tex_coord_view[] =
-    {
-        0.0f,  1.0f,  // left-top
-        1.0f,  1.0f,  // right-top
-        0.0f,  0.0f,  // left-buttom
-        1.0f,  0.0f,  // right- buttom
-    };
+        {
+            0.0f, 1.0f, // left-top
+            1.0f, 1.0f, // right-top
+            0.0f, 0.0f, // left-buttom
+            1.0f, 0.0f, // right- buttom
+        };
 
     float texCoordViewLR[] =
-    {
-        0.1f,  1.0f,  // left-top
-        0.9f,  1.0f,  // right-top
-        0.1f,  0.0f,  // left-buttom
-        0.9f,  0.0f,  // right- buttom
-    };
+        {
+            0.1f, 1.0f, // left-top
+            0.9f, 1.0f, // right-top
+            0.1f, 0.0f, // left-buttom
+            0.9f, 0.0f, // right- buttom
+        };
 
     float texCoordViewDMS[] =
-    {
-        0.0f,  0.0f,  // left-top
-        0.0f,  1.0f,  // right-top
-        1.0f,  0.0f,  // left-buttom
-        1.0f,  1.0f,  // right- buttom
-    };
-
+        {
+            0.0f, 0.0f, // left-top
+            0.0f, 1.0f, // right-top
+            1.0f, 0.0f, // left-buttom
+            1.0f, 1.0f, // right- buttom
+        };
 
     float *verAddr;
     float *texAddr;
     ESMatrix ortho_matrix;
 
-    switch(view_mode)
+    switch (view_mode)
     {
     case VIEW_FRONT:
         which_camera = 0;
@@ -1412,8 +1406,7 @@ void ShowSingleView(int view_mode, float wheel_angle)
         break;
     }
 
-
-    esMatrixLoadIdentity ( &ortho_matrix );
+    esMatrixLoadIdentity(&ortho_matrix);
 
     glViewport(g_single_view.x, g_single_view.y, g_single_view.width, g_single_view.height);
 
@@ -1430,7 +1423,6 @@ void ShowSingleView(int view_mode, float wheel_angle)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, verAddr);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texAddr);
 
-
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_y[which_camera]);
     SetInt(h_program_handle[0], TEXTURE(Y), 0);
@@ -1443,40 +1435,34 @@ void ShowSingleView(int view_mode, float wheel_angle)
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, cnt);
 
-    if(view_mode == VIEW_UNDISTORT_BACK)
+    if (view_mode == VIEW_UNDISTORT_BACK)
     {
         DrawUndistortBackCurve(ortho_matrix);
     }
 }
 
-
-
-
-
-
 void ShowSingleViewFullScreen(int view_mode)
 {
     int which_camera;
     float vertices_view[] =
-    {
-        -1.0f, -1.0f, 0.0f,  // left-buttom
-        1.0f, -1.0f, 0.0f,	// right- buttom
-        -1.0f,	1.0f, 0.0f,   // right-top
-        1.0f,  1.0f, 0.0f,	 // left-top
-    };
-
+        {
+            -1.0f, -1.0f, 0.0f, // left-buttom
+            1.0f, -1.0f, 0.0f,  // right- buttom
+            -1.0f, 1.0f, 0.0f,  // right-top
+            1.0f, 1.0f, 0.0f,   // left-top
+        };
 
     float tex_coord_view[] =
-    {
-        0.0f,  1.0f,  // left-top
-        1.0f,  1.0f,  // right-top
-        0.0f,  0.0f,  // left-buttom
-        1.0f,  0.0f,  // right- buttom
-    };
+        {
+            0.0f, 1.0f, // left-top
+            1.0f, 1.0f, // right-top
+            0.0f, 0.0f, // left-buttom
+            1.0f, 0.0f, // right- buttom
+        };
 
     ESMatrix ortho_matrix;
 
-    switch(view_mode)
+    switch (view_mode)
     {
     case VIEW_FRONT_FULL_SCREEN:
         which_camera = 0;
@@ -1495,8 +1481,7 @@ void ShowSingleViewFullScreen(int view_mode)
         break;
     }
 
-
-    esMatrixLoadIdentity ( &ortho_matrix );
+    esMatrixLoadIdentity(&ortho_matrix);
 
     glViewport(0, 0, WIDVPBE, HEIVPBE);
 
@@ -1512,7 +1497,6 @@ void ShowSingleViewFullScreen(int view_mode)
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_view);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, tex_coord_view);
-
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_y[which_camera]);
@@ -1530,48 +1514,47 @@ void ShowSingleViewFullScreen(int view_mode)
 void ShowFourView()
 {
     float vertices_view_front[] =
-    {
-        -1.0f, 0.0f, 0.0f,  // left-buttom
-        0.0f, 0.0f, 0.0f,	// right- buttom
-        -1.0f,	1.0f, 0.0f,   // right-top
-        0.0f,  1.0f, 0.0f,	 // left-top
-    };
+        {
+            -1.0f, 0.0f, 0.0f, // left-buttom
+            0.0f, 0.0f, 0.0f,  // right- buttom
+            -1.0f, 1.0f, 0.0f, // right-top
+            0.0f, 1.0f, 0.0f,  // left-top
+        };
 
     float vertices_view_back[] =
-    {
-        0.0f, 0.0f, 0.0f,  // left-buttom
-        1.0f, 0.0f, 0.0f,	// right- buttom
-        0.0f,	1.0f, 0.0f,   // right-top
-        1.0f,  1.0f, 0.0f,	 // left-top
-    };
+        {
+            0.0f, 0.0f, 0.0f, // left-buttom
+            1.0f, 0.0f, 0.0f, // right- buttom
+            0.0f, 1.0f, 0.0f, // right-top
+            1.0f, 1.0f, 0.0f, // left-top
+        };
 
     float vertices_view_left[] =
-    {
-        -1.0f, -1.0f, 0.0f,  // left-buttom
-        0.0f, -1.0f, 0.0f,	// rLeftight- buttom
-        -1.0f,	0.0f, 0.0f,   // right-top
-        0.0f,  0.0f, 0.0f,	 // left-top
-    };
+        {
+            -1.0f, -1.0f, 0.0f, // left-buttom
+            0.0f, -1.0f, 0.0f,  // rLeftight- buttom
+            -1.0f, 0.0f, 0.0f,  // right-top
+            0.0f, 0.0f, 0.0f,   // left-top
+        };
 
     float vertices_view_right[] =
-    {
-        0.0f, -1.0f, 0.0f,  // left-buttom
-        1.0f, -1.0f, 0.0f,	// right- buttom
-        0.0f,	0.0f, 0.0f,   // right-top
-        1.0f,  0.0f, 0.0f,	 // left-top
-    };
-
+        {
+            0.0f, -1.0f, 0.0f, // left-buttom
+            1.0f, -1.0f, 0.0f, // right- buttom
+            0.0f, 0.0f, 0.0f,  // right-top
+            1.0f, 0.0f, 0.0f,  // left-top
+        };
 
     float tex_coord_view[] =
-    {
-        0.0f,  1.0f,  // left-top
-        1.0f,  1.0f,  // right-top
-        0.0f,  0.0f,  // left-buttom
-        1.0f,  0.0f,  // right- buttom
-    };
+        {
+            0.0f, 1.0f, // left-top
+            1.0f, 1.0f, // right-top
+            0.0f, 0.0f, // left-buttom
+            1.0f, 0.0f, // right- buttom
+        };
 
     ESMatrix ortho_matrix;
-    esMatrixLoadIdentity ( &ortho_matrix );
+    esMatrixLoadIdentity(&ortho_matrix);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -1601,7 +1584,6 @@ void ShowFourView()
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-
     //Back
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_view_back);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, tex_coord_view);
@@ -1618,7 +1600,6 @@ void ShowFourView()
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-
     //Left
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_view_left);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, tex_coord_view);
@@ -1634,7 +1615,6 @@ void ShowFourView()
     SetInt(h_program_handle[4], TEXTURE(V), 2);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
 
     //Right
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices_view_right);
@@ -1653,8 +1633,6 @@ void ShowFourView()
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
-
-
 int GenerateTriangle(vec2 *triagnle, int width, int height)
 {
     float p = 64.0;
@@ -1671,7 +1649,7 @@ int GenerateTriangle(vec2 *triagnle, int width, int height)
 
     for (i = 0; i < 1; i += fp)
     {
-        switch(directionFlag)
+        switch (directionFlag)
         {
         case 0:
             for (j = 0; j <= 1; j += fp)
@@ -1688,7 +1666,7 @@ int GenerateTriangle(vec2 *triagnle, int width, int height)
             }
             break;
         case 1:
-            for( j = 1; j >= 0; j -= fp )
+            for (j = 1; j >= 0; j -= fp)
             {
                 point.x = j * width;
                 point.y = i * height;
@@ -1699,13 +1677,12 @@ int GenerateTriangle(vec2 *triagnle, int width, int height)
                 point.y = (i + fp) * height;
 
                 triagnle[count++] = point;
-
             }
             break;
         }
         // change direction!
 
-        if( fabs(j - fp - 1) < FLOAT_ZERO )
+        if (fabs(j - fp - 1) < FLOAT_ZERO)
         {
             directionFlag = 1;
         }
@@ -1749,8 +1726,6 @@ vec2 Function(float a1, float b1, float c1, float a2, float b2, float c2)
     return res;
 }
 
-
-
 vec2 Function2(vec2 dist, const float *a, undistortParams params, double *inv_r)
 {
     float fx;
@@ -1778,8 +1753,7 @@ vec2 Function2(vec2 dist, const float *a, undistortParams params, double *inv_r)
     b2 = inv_r[4] - dist.y * inv_r[7];
     c2 = dist.y * inv_r[8] - inv_r[5];
 
-
-    point = Function( a1, b1, c1, a2, b2, c2 );
+    point = Function(a1, b1, c1, a2, b2, c2);
 
     /*get pixel point*/
     imgPoints.x = (cx + point.x * fx - params.x) / params.x_zoom;
@@ -1787,7 +1761,6 @@ vec2 Function2(vec2 dist, const float *a, undistortParams params, double *inv_r)
 
     return imgPoints;
 }
-
 
 vec2 ProjectPoints3(const vec3 obj_points, const float *r_vec,
                     const float *t_vec)
@@ -1808,7 +1781,6 @@ vec2 ProjectPoints3(const vec3 obj_points, const float *r_vec,
 
     return imgPoints;
 }
-
 
 vec3 Vec3(float x, float y, float z)
 {
@@ -1841,7 +1813,7 @@ void FindRearCurve(float wheel_angle, undistortParams params, float *camera, flo
     float offset_y;
     int idx;
     int gap[3] = {3, 4, 5};
-    float distance[4] = {0, 500 / 20.0, 1500 / 20.0, 4000 / 20.0 };
+    float distance[4] = {0, 500 / 20.0, 1500 / 20.0, 4000 / 20.0};
     float car_width = 2556 / 20.0;
     float scale;
 
@@ -1853,11 +1825,11 @@ void FindRearCurve(float wheel_angle, undistortParams params, float *camera, flo
     startx = -car_width / 2 + 70;
     length = car_width;
 
-    if(wheel_angle >= 0 && wheel_angle < 0.05)
+    if (wheel_angle >= 0 && wheel_angle < 0.05)
     {
         wheel_angle = 0.05;
     }
-    else if(wheel_angle < 0 && wheel_angle > -0.05)
+    else if (wheel_angle < 0 && wheel_angle > -0.05)
     {
         wheel_angle = -0.05;
     }
@@ -1871,7 +1843,6 @@ void FindRearCurve(float wheel_angle, undistortParams params, float *camera, flo
     in_r1 = sqrt(in_r * in_r + rear_wheel * rear_wheel);
     ex_r1 = sqrt(ex_r * ex_r + rear_wheel * rear_wheel);
 
-
     in_r1_in = in_r1 - half_line_width;
     in_r1_out = in_r1 + other_half_line_width;
     ex_r1_in = ex_r1 - half_line_width;
@@ -1882,19 +1853,17 @@ void FindRearCurve(float wheel_angle, undistortParams params, float *camera, flo
     radius[2] = ex_r1_in;
     radius[3] = ex_r1_out;
 
-
     scale = (1.0 - 0.2 * fabs(wheel_angle) / MAX_WHEEL_ANGLE);
 
-
-    for(idx = 0; idx < 3; ++idx)
+    for (idx = 0; idx < 3; ++idx)
     {
-        for(k = 0; k < 4; ++k)
+        for (k = 0; k < 4; ++k)
         {
-            if(k < 2)
+            if (k < 2)
             {
                 base_angle[idx][k] = asin((rear_wheel + distance[idx] * scale) / radius[k]);
 
-                if(radius[k] > rear_wheel + distance[idx + 1] * scale)
+                if (radius[k] > rear_wheel + distance[idx + 1] * scale)
                 {
                     delta_angle[idx][k] = asin((rear_wheel + distance[idx + 1] * scale) / radius[k]) - base_angle[idx][k];
                 }
@@ -1907,7 +1876,7 @@ void FindRearCurve(float wheel_angle, undistortParams params, float *camera, flo
             {
                 base_angle[idx][k] = asin((rear_wheel + distance[idx]) / radius[k]);
 
-                if(radius[k] > rear_wheel + distance[idx + 1])
+                if (radius[k] > rear_wheel + distance[idx + 1])
                 {
                     delta_angle[idx][k] = asin((rear_wheel + distance[idx + 1]) / radius[k]) - base_angle[idx][k];
                 }
@@ -1919,19 +1888,18 @@ void FindRearCurve(float wheel_angle, undistortParams params, float *camera, flo
         }
     }
 
-    if(wheel_angle < 0)
+    if (wheel_angle < 0)
     {
-        for(idx = 0; idx < 3; ++idx)
+        for (idx = 0; idx < 3; ++idx)
         {
             for (j = 0, k = 0; j <= 1; j += fp, ++k)
             {
-                for(i = 0; i < 2; ++i)
+                for (i = 0; i < 2; ++i)
                 {
                     tmpx = car_width - ex_r + radius[i * 2 + 0] * cos(base_angle[idx][i * 2 + 0] + delta_angle[idx][i * 2 + 0] * j);
                     tmpy = radius[i * 2 + 0] * sin(base_angle[idx][i * 2 + 0] + delta_angle[idx][i * 2 + 0] * j) - rear_wheel;
 
                     world_points[idx * 2 + i][k * 2 + 0] = Vec3(tmpx, tmpy + offset_y, 0.0);
-
 
                     tmpx = car_width - ex_r + radius[i * 2 + 1] * cos(base_angle[idx][i * 2 + 1] + delta_angle[idx][i * 2 + 1] * j);
                     tmpy = radius[i * 2 + 1] * sin(base_angle[idx][i * 2 + 1] + delta_angle[idx][i * 2 + 1] * j) - rear_wheel;
@@ -1941,7 +1909,7 @@ void FindRearCurve(float wheel_angle, undistortParams params, float *camera, flo
             }
         }
 
-        for(idx = 0; idx < 3; ++idx)
+        for (idx = 0; idx < 3; ++idx)
         {
             tmpx = car_width - ex_r + radius[1] * cos(base_angle[idx][1] + delta_angle[idx][1] * 1.0);
             tmpy = radius[1] * sin(base_angle[idx][1] + delta_angle[idx][1] * 1.0) - rear_wheel;
@@ -1953,7 +1921,6 @@ void FindRearCurve(float wheel_angle, undistortParams params, float *camera, flo
 
             world_points[6][idx * 4 + 1] = Vec3(tmpx, tmpy + offset_y, 0.0);
 
-
             tmpx = car_width - ex_r + radius[2] * cos(base_angle[idx][2] + delta_angle[idx][2] * 1.0);
             tmpy = radius[2] * sin(base_angle[idx][2] + delta_angle[idx][2] * 1.0) - rear_wheel;
 
@@ -1964,16 +1931,14 @@ void FindRearCurve(float wheel_angle, undistortParams params, float *camera, flo
 
             world_points[6][idx * 4 + 3] = Vec3(tmpx, tmpy + offset_y, 0.0);
         }
-
-
     }
     else
     {
-        for(idx = 0; idx < 3; ++idx)
+        for (idx = 0; idx < 3; ++idx)
         {
             for (j = 0, k = 0; j <= 1; j += fp, ++k)
             {
-                for(i = 0; i < 2; ++i)
+                for (i = 0; i < 2; ++i)
                 {
                     tmpx = car_width + in_r - radius[i * 2 + 0] * cos(base_angle[idx][i * 2 + 0] + delta_angle[idx][i * 2 + 0] * j);
                     tmpy = radius[i * 2 + 0] * sin(base_angle[idx][i * 2 + 0] + delta_angle[idx][i * 2 + 0] * j) - rear_wheel;
@@ -1988,7 +1953,7 @@ void FindRearCurve(float wheel_angle, undistortParams params, float *camera, flo
             }
         }
 
-        for(idx = 0; idx < 3; ++idx)
+        for (idx = 0; idx < 3; ++idx)
         {
             tmpx = car_width + in_r - radius[1] * cos(base_angle[idx][1] + delta_angle[idx][1] * 1.0);
             tmpy = radius[1] * sin(base_angle[idx][1] + delta_angle[idx][1] * 1.0) - rear_wheel;
@@ -1999,7 +1964,6 @@ void FindRearCurve(float wheel_angle, undistortParams params, float *camera, flo
             tmpy = radius[1] * sin(base_angle[idx][1] + delta_angle[idx][1] * (1.0 - gap[idx] * fp)) - rear_wheel;
 
             world_points[6][idx * 4 + 1] = Vec3(tmpx, tmpy + offset_y, 0.0);
-
 
             tmpx = car_width + in_r - radius[2] * cos(base_angle[idx][2] + delta_angle[idx][2] * 1.0);
             tmpy = radius[2] * sin(base_angle[idx][2] + delta_angle[idx][2] * 1.0) - rear_wheel;
@@ -2015,27 +1979,27 @@ void FindRearCurve(float wheel_angle, undistortParams params, float *camera, flo
 
     for (j = 0, k = 0; j <= 1; j += fp)
     {
-        tmpx = startx + (length) * j;
+        tmpx = startx + (length)*j;
         tmpy = 0 - 5;
 
         world_points[7][k * 2 + 0] = Vec3(tmpx, tmpy, 0.0);
 
-        tmpx = startx + (length) * j;
+        tmpx = startx + (length)*j;
         tmpy = 0 + 5;
 
         world_points[7][k * 2 + 1] = Vec3(tmpx, tmpy, 0.0);
         k++;
     }
 
-    for(k = 0; k < 8; ++k)
+    for (k = 0; k < 8; ++k)
     {
-        for(i = 0; i < LENGTH * 2; ++i)
+        for (i = 0; i < LENGTH * 2; ++i)
         {
-            pw = world_points[k][i];		/*get world point*/
+            pw = world_points[k][i]; /*get world point*/
 
-            len = ProjectPoints3( pw, r_vec, t_vec ); /*get img point*/
+            len = ProjectPoints3(pw, r_vec, t_vec); /*get img point*/
 
-            point = Function2(len, camera, params, inv_r);	/*get pixel point*/
+            point = Function2(len, camera, params, inv_r); /*get pixel point*/
 
             /*caculate vertex point*/
             vertices_rear_traj_line_point[k][i].x = -(1.0 - 2 * point.x / width);
@@ -2044,7 +2008,6 @@ void FindRearCurve(float wheel_angle, undistortParams params, float *camera, flo
         }
     }
 }
-
 
 void InitUndistort(int width, int height)
 {
@@ -2097,7 +2060,6 @@ void InitUndistort(int width, int height)
     resizer.x_zoom = 1.0 * rear_resizer.width / width;
     resizer.y_zoom = 1.0 * rear_resizer.height / height;
 
-
     img_coord_point_back = (vec2 *)malloc(sizeof(vec2) * p * (p + 1) * 2);
 
     ver_count_back = GenerateTriangle(img_coord_point_back, width, height);
@@ -2132,7 +2094,6 @@ void InitUndistort(int width, int height)
     }
 
     FindRearCurve(0.0, resizer, rear_cam_params.mi, rear_cam_params.mr, rear_cam_params.mt, inv_r, width, height);
-
 }
 
 int AvmInit(safImgRect allView, safImgRect singleView)
@@ -2164,9 +2125,9 @@ extern void UpdateTexture(unsigned char **src)
 {
     int i;
     unsigned char *p_src_y, *p_src_u, *p_src_v;
-    for(i = 0; i < 5; ++i)
+    for (i = 0; i < 5; ++i)
     {
-        if(NULL == src[i])
+        if (NULL == src[i])
         {
             /*check image address*/
             continue;
@@ -2176,13 +2137,13 @@ extern void UpdateTexture(unsigned char **src)
         p_src_u = p_src_y + IMAGE_WIDTH * IMAGE_HEIGHT;
         p_src_v = p_src_u + IMAGE_WIDTH * IMAGE_HEIGHT / 4;
 
-        glBindTexture( GL_TEXTURE_2D, texture_y[i]);
+        glBindTexture(GL_TEXTURE_2D, texture_y[i]);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, IMAGE_WIDTH, IMAGE_HEIGHT, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, p_src_y);
 
-        glBindTexture( GL_TEXTURE_2D, texture_u[i]);
+        glBindTexture(GL_TEXTURE_2D, texture_u[i]);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, IMAGE_WIDTH / 2, IMAGE_HEIGHT / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, p_src_u);
 
-        glBindTexture( GL_TEXTURE_2D, texture_v[i]);
+        glBindTexture(GL_TEXTURE_2D, texture_v[i]);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, IMAGE_WIDTH / 2, IMAGE_HEIGHT / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, p_src_v);
 
         pu8_cam_vir[i] = p_src_y;
@@ -2190,16 +2151,16 @@ extern void UpdateTexture(unsigned char **src)
 
     CaculateColorCoeff2D(src);
 }
-
-
+// int idx = 0;
+// int count = 0;
 void RunRender(int view_mode, float steeringWheelAngle)
 {
     // Clear the colorbuffer and depth-buffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    if(view_mode < VIEW_LEFT)
+    if (view_mode < VIEW_LEFT)
     {
-        if(view_mode == VIEW_OVERALL)
+        if (view_mode == VIEW_OVERALL)
         {
             ShowFourView();
         }
@@ -2213,7 +2174,11 @@ void RunRender(int view_mode, float steeringWheelAngle)
         Show2DCar();
         ShowSingleView(view_mode, steeringWheelAngle);
     }
+    // if (count % 100 == 0)
+    // {
+    //     printf("count=%d\n", count);
+    //     idx++;
+    //     UpdateCarImage(idx % 2);
+    // }
+    // count++;
 }
-
-
-

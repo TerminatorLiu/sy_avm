@@ -47,6 +47,7 @@ extern int AvmInit(safImgRect allView, safImgRect singleView);
 extern void RunRender(int viewMode, float steeringWheelAngle);
 extern void UpdateTexture(unsigned char **src);
 extern void ShowFullScreeen();
+extern void UpdateCarImage(char car_name[]);
 
 extern int g_yuv_org_flag;
 extern struct yuv_flip_buf g_yuv_flip_buf;
@@ -119,7 +120,6 @@ int InitOpenglesWindows()
   EGLint num_config;
   EGLContext context;
   GLint width, height;
-
   egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
   if (egl_display == EGL_NO_DISPLAY)
   {
@@ -190,7 +190,7 @@ int InitWindow()
   allView.x = 920;
   allView.y = 0;
 
-  singleView.width = 920; // 288;
+  singleView.width = 912; // 288;
   singleView.height = 720;
   singleView.x = 0;
   singleView.y = 0;
@@ -262,6 +262,25 @@ void SaveFile(struct current_camera_buffer *buf, int32_t nlen)
   }
 }
 
+int UpdateVehicleImage()
+{
+  if(VehicleImageNeedUpdate())
+  {
+    switch (GetVehicleType())
+    {
+    case VECHICLE_TYPE_DUMP:
+      UpdateCarImage(VECHICLE_TYPE_DUMP_IMAGE_NAME);
+      break;
+    case VECHICLE_TYPE_MIXER:
+      UpdateCarImage(VECHICLE_TYPE_MIXER_IMAGE_NAME);
+      break;
+    default:
+      break;
+    }
+    ResetVehicleImageNeedUpdate();
+  }
+  return 0;
+}
 /**
  * @brief refresh camera data to screen.
  * @param param 6 channel camera data and render mode
@@ -280,26 +299,24 @@ void RenderWindow(struct render_parameter *param)
 
   struct timeval tv, tvend;
 
-  if (g_yuv_flip_buf.left_addr)
+  if ((g_yuv_flip_buf.left_addr) && (GetFilpLeft() == ENABLE_FLIP))
   {
-#if ENABLE_ROTATE
     ImageFilp((unsigned char *)param->camerabuf[CAMERA_LEFT_DEV_ID].addr,
               (unsigned char *)g_yuv_flip_buf.left_addr);
     psrc[CAMERA_LEFT_DEV_ID] = (unsigned char *)g_yuv_flip_buf.left_addr;
+    printf("Flip left\n");
     // memcpy((unsigned char *)param->camerabuf[CAMERA_LEFT_DEV_ID].addr,
     //&psrc[CAMERA_LEFT_DEV_ID], param->camerabuf[CAMERA_LEFT_DEV_ID].length);
-#endif
   }
 
-  if (g_yuv_flip_buf.right_addr)
+  if (g_yuv_flip_buf.right_addr && (GetFilpRight() == ENABLE_FLIP))
   {
-#if ENABLE_ROTATE
     ImageFilp((unsigned char *)param->camerabuf[CAMERA_RIGTH_DEV_ID].addr,
               (unsigned char *)g_yuv_flip_buf.right_addr);
     psrc[CAMERA_RIGTH_DEV_ID] = (unsigned char *)g_yuv_flip_buf.right_addr;
+    printf("Flip right\n");
     // memcpy((unsigned char *)param->camerabuf[CAMERA_RIGTH_DEV_ID].addr,
     //&psrc[CAMERA_RIGTH_DEV_ID], param->camerabuf[CAMERA_RIGTH_DEV_ID].length);
-#endif
   }
 
   // printf(" mode : %d, timestame:%ld\r\n",  renderparam->mode, timestamp);
@@ -329,6 +346,8 @@ void RenderWindow(struct render_parameter *param)
 #endif
   gettimeofday(&tv, NULL);
   int64_t timestamp = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+
+  UpdateVehicleImage();
 
 #ifdef SCREEN_ROTATE
   switch (GetDisplayMode())

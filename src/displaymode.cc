@@ -141,3 +141,4 @@ int32_t InitDisplayModeSwitch()
   pthread_detach(gDisplayModeSwitch);
   return res;
 }
+

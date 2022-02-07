@@ -1,3 +1,4 @@
+#include <conf.h>
 #ifndef __cplusplus
 # include <stdatomic.h>
 #else
@@ -8,6 +9,7 @@
 _Atomic(int) gFlipLeft(0);
 _Atomic(int) gFlipRight(0);
 _Atomic(int) gVehicleType(0);
+_Atomic(int) gVehicleImageNeedUpdate(0);
 
 int GetFilpLeft()
 {
@@ -39,12 +41,27 @@ int GetVehicleType()
   return res;
 }
 
-int SetVehicleTypet(int desired)
+int SetVehicleType(int desired)
 {
   gVehicleType.store(desired);
   return 0;
 }
 
+int SetVehicleImageNeedUpdate()
+{
+  gVehicleImageNeedUpdate.store(1);
+  return 0;
+}
+int ResetVehicleImageNeedUpdate()
+{
+  gVehicleImageNeedUpdate.store(0);
+  return 0;
+}
+int VehicleImageNeedUpdate()
+{
+  int res = gVehicleImageNeedUpdate.load();
+  return res;
+}
 int InitConf()
 {
   //TODO

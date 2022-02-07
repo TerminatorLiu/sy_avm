@@ -1029,7 +1029,7 @@ initChessBoardPoints(int cam_id,const CvSeq* image_points_seq,CvMat* image_point
 			for( k = 1; k <= corners_width; k++ )
 			{
 				*obj_pt++ = cvPoint3D32f(k*square_size + offset_x, j*square_size - CAR_F_BLIND , FLT_EPSILON);
-				printf("front chess = %d %d\n",k*square_size + offset_x, j*square_size);
+                //printf("front chess = %d %d\n",k*square_size + offset_x, j*square_size);
 				*dst_img_pt++ = *src_img_pt++;
 			}
 			CV_NEXT_SEQ_ELEM( image_points_seq->elem_size, reader );
@@ -1043,7 +1043,7 @@ initChessBoardPoints(int cam_id,const CvSeq* image_points_seq,CvMat* image_point
 			for( k = corners_width; k > 0; k-- )
 			{
 				*obj_pt++ = cvPoint3D32f(k*square_size + offset_x, j*square_size + CAR_B_BLIND, FLT_EPSILON);
-				printf("back chess = %d %d\n",k*square_size + offset_x, j*square_size);
+				//printf("back chess = %d %d\n",k*square_size + offset_x, j*square_size);
 				*dst_img_pt++ = *src_img_pt++;
 			}
 			CV_NEXT_SEQ_ELEM( image_points_seq->elem_size, reader );
@@ -1055,7 +1055,7 @@ initChessBoardPoints(int cam_id,const CvSeq* image_points_seq,CvMat* image_point
 			for( j =corners_width;j >0 ; j-- )
 			{
 				*obj_pt++ = cvPoint3D32f(k*square_size - CAR_LR_BLIND, j*square_size , FLT_EPSILON);
-				printf("left chess = %d %d\n",k*square_size + offset_x, j*square_size);
+				//printf("left chess = %d %d\n",k*square_size + offset_x, j*square_size);
 				*dst_img_pt++ = *src_img_pt++;
 			}
 			CV_NEXT_SEQ_ELEM( image_points_seq->elem_size, reader );
@@ -1067,7 +1067,7 @@ initChessBoardPoints(int cam_id,const CvSeq* image_points_seq,CvMat* image_point
 			for( j = 1; j <= corners_width; j++ )
 			{
 				*obj_pt++ = cvPoint3D32f(k*square_size + CAR_LR_BLIND, j*square_size , FLT_EPSILON);
-				printf("right chess = %d %d\n",k*square_size + offset_x, j*square_size);
+				//printf("right chess = %d %d\n",k*square_size + offset_x, j*square_size);
 				*dst_img_pt++ = *src_img_pt++;
 			}
 			CV_NEXT_SEQ_ELEM( image_points_seq->elem_size, reader );

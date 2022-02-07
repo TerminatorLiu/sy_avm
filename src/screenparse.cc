@@ -8,6 +8,7 @@
 #include "screenparse.h"
 #include "timeset.h"
 #include "displaymode.h"
+#include "conf.h"
 
 #define SCREEN_PARSE_DEBUG
 #ifdef SCREEN_PARSE_DEBUG
@@ -17,6 +18,8 @@
 #endif
 
 extern int cameraCalib(int carLength, int carWidth, int chess2carFront);
+
+
 
 volatile int cameraCalib_busy_flag = 0;
 
@@ -44,27 +47,30 @@ int SaveImage()
   pthread_rwlock_unlock(&gSaveImageLock);
   return res;
 }
+
 /**
  * @brief caculate xor checksum.
  * @param buf caculate protol checksum.
  **/
-uint8_t SerialRxCheckSum(uint8_t *buf) {
+uint8_t SerialRxCheckSum(uint8_t *buf)
+{
   struct jimu_proto_header *header = (struct jimu_proto_header *)buf;
   uint8_t crc = 0xAA ^ 0x75;
   uint16_t len = 5 + header->len;
-  for (size_t i = 0; i < len; ++i) {
+  for (size_t i = 0; i < len; ++i)
+  {
     crc ^= buf[i];
   }
   return crc;
 }
-
 
 /**
  * @brief parse 360surroud display mode message.
  * @param dtin input proto data.
  * @param dtout encode command.
  **/
-static int ParseDisplayModeMsg(uint8_t *dtin, uint8_t *dtout) {
+static int ParseDisplayModeMsg(uint8_t *dtin, uint8_t *dtout)
+{
   struct jimu_proto_header *header = (struct jimu_proto_header *)dtin;
   struct jimu_proto_header *outheader = (struct jimu_proto_header *)&dtout[2];
   uint8_t mode = header->dt[0];
@@ -72,11 +78,14 @@ static int ParseDisplayModeMsg(uint8_t *dtin, uint8_t *dtout) {
   dtout[1] = 0x7A;
   outheader->cmd = header->cmd;
   outheader->len = 1;
-  printf("mode = 0x%x in %s:%d\n",mode,__FILE__,__LINE__);
-  if (SetDisplayMode(mode) == 0) {
+  printf("mode = 0x%x in %s:%d\n", mode, __FILE__, __LINE__);
+  if (SetDisplayMode(mode) == 0)
+  {
     /* support command */
     outheader->errcode = 0;
-  } else {
+  }
+  else
+  {
     /* unsupport command */
     outheader->errcode = 1;
   }
@@ -84,12 +93,51 @@ static int ParseDisplayModeMsg(uint8_t *dtin, uint8_t *dtout) {
   outheader->dt[1] = CalcCheckSum(dtout, outheader->len + 7);
   return outheader->len + 8;
 }
+static int ParseFlipCamera(uint data)
+{
+  switch (data)
+  {
+  case 0x00:
+    SetFlipLeft(DISABLE_FLIP);
+    break;
+  case 0x01:
+    SetFlipLeft(ENABLE_FLIP);
+    break;
+  case 0x02:
+    SetFlipRight(DISABLE_FLIP);
+    break;
+  case 0x03:
+    SetFlipRight(ENABLE_FLIP);
+    break;
+  default:
+    break;
+  }
+  return 0;
+}
 
+static int ParseSwithcVechicle(uint data)
+{
+  switch (data)
+  {
+  case 0x00:
+    SetVehicleType(VECHICLE_TYPE_MIXER);
+    SetVehicleImageNeedUpdate();
+    break;
+  case 0x01:
+    SetVehicleType(VECHICLE_TYPE_DUMP);
+    SetVehicleImageNeedUpdate();
+    break;
+  default:
+    break;
+  }
+  return 0;
+}
 /**
  * @brief calibration task processing.
  * @param argc calibration parameter.
  **/
-void *CameraCalibRoutine(void *argc) {
+void *CameraCalibRoutine(void *argc)
+{
   struct AMS_Parameter *ams_parameter = (struct AMS_Parameter *)argc;
   int carLength = ams_parameter->carLength;
   int carWidth = ams_parameter->carWidth;
@@ -104,12 +152,15 @@ void *CameraCalibRoutine(void *argc) {
   ret = cameraCalib(carLength, carWidth, chess2carFront);
   //ret = 0;
 
-  if (ret == 0) {
+  if (ret == 0)
+  {
     data = 0;
     /* success calibrate finished */
     SCREENPARSEDBGprint("--------success calibrate---------\r\n");
     SCREENPARSEDBGprint("system reboot now \r\n");
-  } else {
+  }
+  else
+  {
     data = 1;
     SCREENPARSEDBGprint("--------failed calibrate---------\r\n");
   }
@@ -121,7 +172,8 @@ void *CameraCalibRoutine(void *argc) {
   AddTxBuffer(CCS_SER_IDX, dtout, len);
   PrintArray(dtout, len);
   cameraCalib_busy_flag = 0;
-  if (ret == 0) {
+  if (ret == 0)
+  {
     sleep(1);
     system("reboot");
   }
@@ -133,7 +185,8 @@ void *CameraCalibRoutine(void *argc) {
  *thread to do calibrate task. if failed to calibrated, it will take 60 second.
  * @param ams_parameter calibration  input parameter.
  **/
-void InitCameraCalibPthread(struct AMS_Parameter *ams_parameter) {
+void InitCameraCalibPthread(struct AMS_Parameter *ams_parameter)
+{
   pthread_t calib_th;
   pthread_create(&calib_th, NULL, CameraCalibRoutine, ams_parameter);
 }
@@ -144,7 +197,8 @@ void InitCameraCalibPthread(struct AMS_Parameter *ams_parameter) {
  * @param dtin command from central control screen.
  * @param dtout the command reply to central control screen.
  **/
-int ParseUiSerialMsg(uint8_t *dtin, uint8_t *dtout) {
+int ParseUiSerialMsg(uint8_t *dtin, uint8_t *dtout)
+{
   struct jimu_proto_header *header = (struct jimu_proto_header *)dtin;
   uint16_t len = 5 + header->len;
   int ret = 0;
@@ -152,82 +206,95 @@ int ParseUiSerialMsg(uint8_t *dtin, uint8_t *dtout) {
   uint8_t tmpbuf[20] = {0};
   static FILE *s_firmwarefile_fp = NULL;
   struct AMS_Parameter ams_parameter = {0};
-  if (dtin[len] == SerialRxCheckSum(dtin)) {
-    switch (header->cmd) {
-      case CMD_SET_DISPLAY_MODE: /* 0x00 */
-        ret = ParseDisplayModeMsg(dtin, dtout);
-        break;
-      case SAVE_IMAGE:
-        SetSaveImage();
-        break;
+  if (dtin[len] == SerialRxCheckSum(dtin))
+  {
+    switch (header->cmd)
+    {
+    case CMD_SET_DISPLAY_MODE: /* 0x00 */
+      ret = ParseDisplayModeMsg(dtin, dtout);
+      break;
+    case SAVE_IMAGE_CMD:
+      SetSaveImage();
+      break;
+    case SWITCH_VECHICLE_CMD:
+      ParseSwithcVechicle(header->dt[0]);
+      break;
+    case FILP_CAMERA_CMD:
+      ParseFlipCamera(header->dt[0]);
+      break;
+    case AMS_CONFIGURE_PARAMETER: /*0xBB AMS configure parameter */
+      memcpy(p, header->dt, 12);
+      p[0] = SWAP32(p[0]);
+      p[1] = SWAP32(p[1]);
+      p[2] = SWAP32(p[2]);
 
-      case AMS_CONFIGURE_PARAMETER: /*0xBB AMS configure parameter */
-        memcpy(p, header->dt, 12);
-        p[0] = SWAP32(p[0]);
-        p[1] = SWAP32(p[1]);
-        p[2] = SWAP32(p[2]);
+      ams_parameter.carLength = p[0];
+      ams_parameter.carWidth = p[1];
+      ams_parameter.chess2carFront = p[2];
 
-        ams_parameter.carLength = p[0];
-        ams_parameter.carWidth = p[1];
-        ams_parameter.chess2carFront = p[2];
+      if (cameraCalib_busy_flag == 0)
+      {
+        SCREENPARSEDBGprint(
+            "AMS parameter carLength:%d, carLength:%d, chess2carFront:%d\r\n",
+            p[0], p[1], p[2]);
+        InitCameraCalibPthread(&ams_parameter);
+        usleep(100 * 1000);
+      }
 
-        if (cameraCalib_busy_flag == 0) {
-          SCREENPARSEDBGprint(
-              "AMS parameter carLength:%d, carLength:%d, chess2carFront:%d\r\n",
-              p[0], p[1], p[2]);
-          InitCameraCalibPthread(&ams_parameter);
-          usleep(100 * 1000);
-        }
+      break;
 
-        break;
+    case AEB_CONFIGURE_PARAMETER: /* 0xCC AEB configure parameter */
+      SCREENPARSEDBGprint("AEB check success, cmd:0x%X, len:%d, dtlen:%d\r\n",
+                          header->cmd, len, header->len);
+      if (len < 15)
+      {
+        tmpbuf[0] = SCREEN_PARSE_SYNC1;
+        tmpbuf[1] = SCREEN_PARSE_SYNC2;
+        memcpy(&tmpbuf[2], dtin, len + 1);
+        PrintArray(tmpbuf, len + 3);
+        AddTxBuffer(MCU_SER_IDX, tmpbuf, len + 3);
+      }
+      break;
 
-      case AEB_CONFIGURE_PARAMETER: /* 0xCC AEB configure parameter */
-        SCREENPARSEDBGprint("AEB check success, cmd:0x%X, len:%d, dtlen:%d\r\n",
-                            header->cmd, len, header->len);
-        if (len < 15) {
-          tmpbuf[0] = SCREEN_PARSE_SYNC1;
-          tmpbuf[1] = SCREEN_PARSE_SYNC2;
-          memcpy(&tmpbuf[2], dtin, len + 1);
-          PrintArray(tmpbuf, len + 3);
-          AddTxBuffer(MCU_SER_IDX, tmpbuf, len + 3);
-        }
-        break;
+    case FILE_TRANSFORM_CMD:
+      if (s_firmwarefile_fp == NULL)
+      {
+        s_firmwarefile_fp = fopen("/tmp/firmware.bin", "w");
+      }
+      if (s_firmwarefile_fp)
+      {
+        fwrite(header->dt, header->len, 1, s_firmwarefile_fp);
+      }
+      break;
 
-      case FILE_TRANSFORM_CMD:
-        if (s_firmwarefile_fp == NULL) {
-          s_firmwarefile_fp = fopen("/tmp/firmware.bin", "w");
-        }
-        if (s_firmwarefile_fp) {
-          fwrite(header->dt, header->len, 1, s_firmwarefile_fp);
-        }
-        break;
+    case FILE_MD5CHECKSUM_CMD:
+      SCREENPARSEDBGprint("md5:");
+      PrintArray(header->dt, header->len);
+      if (s_firmwarefile_fp != NULL)
+      {
+        fclose(s_firmwarefile_fp);
+      }
+      break;
 
-      case FILE_MD5CHECKSUM_CMD:
-        SCREENPARSEDBGprint("md5:");
-        PrintArray(header->dt, header->len);
-        if (s_firmwarefile_fp != NULL) {
-          fclose(s_firmwarefile_fp);
-        }
-        break;
+    case RTC_SYNC_CMD:
+      //PrintArray(header->dt, header->len);
+      //printf("year:%d,%d\r\n", header->dt[0], header->dt[0] + 2000);
+      SetSystemDateTime(header->dt[0] + 2000, header->dt[1], header->dt[2],
+                        header->dt[3], header->dt[4], header->dt[5]);
+      break;
 
-      case RTC_SYNC_CMD:
-        //PrintArray(header->dt, header->len);
-        //printf("year:%d,%d\r\n", header->dt[0], header->dt[0] + 2000);
-        SetSystemDateTime(header->dt[0] + 2000, header->dt[1], header->dt[2],
-                          header->dt[3], header->dt[4], header->dt[5]);
-        break;
-
-      default:
-        break;
+    default:
+      break;
     }
 
-    SCREENPARSEDBGprint("header, cmd:%d, errcode:%d, len:%d, dt0:0x%02X\r\n",
+    SCREENPARSEDBGprint("header, cmd:%x, errcode:%d, len:%d, dt0:0x%02X\r\n",
                         header->cmd, header->errcode, header->len,
                         header->dt[0]);
-
-  } else {
+  }
+  else
+  {
     SCREENPARSEDBGprint(
-        "check sum failed header, cmd:%d, errcode:%d, len:%d, dt0:0x%02X\r\n",
+        "check sum failed header, cmd:%x, errcode:%d, len:%d, dt0:0x%02X\r\n",
         header->cmd, header->errcode, header->len, header->dt[0]);
 
     /*SCREENPARSEDBGprint("--------check sum failed,  0x%02X, 0x%02X\r\n",
@@ -240,7 +307,8 @@ int ParseUiSerialMsg(uint8_t *dtin, uint8_t *dtout) {
  * @brief protol parse task, called by parse thread.
  * @param ser_info serial buffer and state
  **/
-int ScreenParseCmd(struct sy_serial_info *ser_info) {
+int ScreenParseCmd(struct sy_serial_info *ser_info)
+{
   unsigned char ch = 0;
   struct jimu_proto_header *header =
       (struct jimu_proto_header *)ser_info->cmdinfbuf;
@@ -248,60 +316,66 @@ int ScreenParseCmd(struct sy_serial_info *ser_info) {
   pthread_mutex_lock(&(ser_info->rx_buf.mutex));
   unsigned char *p = (unsigned char *)ser_info->p;
   enum jimu_proto_state_t state = (enum jimu_proto_state_t)ser_info->state;
-  while (ser_info->rx_buf.rx != ser_info->rx_buf.wd) {
+  while (ser_info->rx_buf.rx != ser_info->rx_buf.wd)
+  {
     /* code */
     ch = ser_info->rx_buf.buf[ser_info->rx_buf.rx];
-    switch (state) {
-      case JIMU_SYNC_STATE1:
-        if (JIMU_HOST_SYNC1 == ch) {
-          state = JIMU_SYNC_STATE2;
-        }
-        break;
+    switch (state)
+    {
+    case JIMU_SYNC_STATE1:
+      if (JIMU_HOST_SYNC1 == ch)
+      {
+        state = JIMU_SYNC_STATE2;
+      }
+      break;
 
-      case JIMU_SYNC_STATE2:
-        if (JIMU_HOST_SYNC2 == ch) {
-          state = JIMU_HEADER_STATE;
-          p = (unsigned char *)ser_info->cmdinfbuf;
-        }
+    case JIMU_SYNC_STATE2:
+      if (JIMU_HOST_SYNC2 == ch)
+      {
+        state = JIMU_HEADER_STATE;
+        p = (unsigned char *)ser_info->cmdinfbuf;
+      }
+      ser_info->count = 0;
+      break;
+
+    case JIMU_HEADER_STATE:
+      *p = ch;
+      ser_info->count++;
+      if (ser_info->count >= sizeof(struct jimu_proto_header))
+      {
+        state = JIMU_DATA;
         ser_info->count = 0;
-        break;
+        // SCREENPARSEDBGprint("data len:%d, 0x%X \r\n", header.len,
+        // header.len);
+      }
+      p++;
+      // SCREENPARSEDBGprint("count:%d,0x %02x\r\n", count, ch & 0xFF);
+      break;
 
-      case JIMU_HEADER_STATE:
-        *p = ch;
-        ser_info->count++;
-        if (ser_info->count >= sizeof(struct jimu_proto_header)) {
-          state = JIMU_DATA;
-          ser_info->count = 0;
-          // SCREENPARSEDBGprint("data len:%d, 0x%X \r\n", header.len,
-          // header.len);
-        }
-        p++;
-        // SCREENPARSEDBGprint("count:%d,0x %02x\r\n", count, ch & 0xFF);
-        break;
+    case JIMU_DATA:
+      *p = ch;
+      ser_info->count++;
+      // SCREENPARSEDBGprint("data :%d, %d, ch:0x%X\r\n", count, header.len,
+      // ch);
+      if (ser_info->count >= header->len)
+      {
+        state = JIMU_CHECK_SUM;
+        ser_info->count = 0;
+      }
+      p++;
+      break;
 
-      case JIMU_DATA:
-        *p = ch;
-        ser_info->count++;
-        // SCREENPARSEDBGprint("data :%d, %d, ch:0x%X\r\n", count, header.len,
-        // ch);
-        if (ser_info->count >= header->len) {
-          state = JIMU_CHECK_SUM;
-          ser_info->count = 0;
-        }
-        p++;
-        break;
+    case JIMU_CHECK_SUM:
+      *p = ch;
+      state = JIMU_SYNC_STATE1;
+      ParseUiSerialMsg(ser_info->cmdinfbuf, ser_info->cmdoutbuf);
+      SCREENPARSEDBGprint(
+          "screenparse_cmd headinfo, cmd:0x%X, errcode:%d, len:%d\r\n",
+          header->cmd, header->errcode, header->len);
+      break;
 
-      case JIMU_CHECK_SUM:
-        *p = ch;
-        state = JIMU_SYNC_STATE1;
-        ParseUiSerialMsg(ser_info->cmdinfbuf, ser_info->cmdoutbuf);
-        SCREENPARSEDBGprint(
-            "screenparse_cmd headinfo, cmd:0x%X, errcode:%d, len:%d\r\n",
-            header->cmd, header->errcode, header->len);
-        break;
-
-      default:
-        break;
+    default:
+      break;
     }
     ser_info->rx_buf.rx++;
     ser_info->rx_buf.rx %= SERIA_BUF_SIZE;
